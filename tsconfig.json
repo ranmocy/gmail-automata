@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "build",
+    "module": "none",
+    "target": "es6",
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitUseStrict": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "importHelpers": true,
+    "strictNullChecks": true,
+    "experimentalDecorators": true
+  },
+  "exclude": [
+    "build",
+    "node_modules"
+  ]
+}

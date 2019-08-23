@@ -118,7 +118,7 @@ class Condition {
                 return false;
             }
             case ConditionType.SUBJECT: {
-                return this.matchAddress(message_data.subject);
+                return this.regexp.test(message_data.subject);
             }
             case ConditionType.FROM: {
                 return this.matchAddress(message_data.from);

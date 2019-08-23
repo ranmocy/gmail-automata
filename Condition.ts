@@ -117,9 +117,6 @@ class Condition {
                 }
                 return false;
             }
-            case ConditionType.SUBJECT: {
-                return this.regexp.test(message_data.subject);
-            }
             case ConditionType.FROM: {
                 return this.matchAddress(message_data.from);
             }
@@ -140,6 +137,9 @@ class Condition {
             }
             case ConditionType.RECEIVER: {
                 return this.matchAddress(...message_data.receivers);
+            }
+            case ConditionType.SUBJECT: {
+                return this.regexp.test(message_data.subject);
             }
             case ConditionType.BODY: {
                 return this.regexp.test(message_data.body);

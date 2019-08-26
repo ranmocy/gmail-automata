@@ -1,20 +1,20 @@
 enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
 
-enum InboxActionType {INBOX, ARCHIVE, TRASH}
+enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
 
 class ThreadAction {
 
     private static ACTION_CONFIG_TYPE_FIELD_NAMES: (keyof Pick<ThreadAction, "important" | "read" | "auto_label">)[] = ["important", "read", "auto_label"];
 
     public readonly label_names: Set<string> = new Set<string>();
-    public move_to: InboxActionType = InboxActionType.ARCHIVE;
+    public move_to: InboxActionType = InboxActionType.DEFAULT;
     public important: BooleanActionType = BooleanActionType.DEFAULT;
     public read: BooleanActionType = BooleanActionType.DEFAULT;
     public auto_label: BooleanActionType = BooleanActionType.DEFAULT;
 
     hasAnyAction() {
         return this.label_names.size > 0
-            || this.move_to != InboxActionType.ARCHIVE
+            || this.move_to != InboxActionType.DEFAULT
             || this.important != BooleanActionType.DEFAULT
             || this.read != BooleanActionType.DEFAULT;
     }

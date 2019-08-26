@@ -49,7 +49,7 @@ class Rule {
 
     private static parseInboxActionType(str: string): InboxActionType {
         if (str.length === 0) {
-            return InboxActionType.ARCHIVE;
+            return InboxActionType.DEFAULT;
         }
         const result = InboxActionType[str.toUpperCase() as keyof typeof InboxActionType];
         assert(result !== undefined, `Can't parse inbox action value ${str}.`);

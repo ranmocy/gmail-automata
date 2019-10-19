@@ -198,12 +198,14 @@ class Condition {
         t('/some-.*@gmail.com/', 'some2-mailing-list@gmail.com', true, false);
 
         const base_message = {
-            getFrom: () => "",
-            getTo: () => "",
+            getFrom: () => '',
+            getTo: () => '',
             getCc: () => '',
             getBcc: () => '',
+            getReplyTo: () => '',
             getSubject: () => '',
             getPlainBody: () => '',
+            getRawContent: () => '',
         } as GoogleAppsScript.Gmail.GmailMessage;
 
         function c(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>, expected: boolean) {

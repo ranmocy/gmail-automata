@@ -60,7 +60,13 @@ class MessageData {
         this.receivers = ([] as string[]).concat(this.to, this.cc, this.bcc, this.list);
         this.subject = message.getSubject();
         // Potentially could be HTML, Plain, or RAW. But doesn't seem very useful other than Plain.
-        this.body = message.getPlainBody().substr(0, MAX_BODY_PROCESSING_LENGTH);
+        let body = message.getPlainBody();
+        // Truncate and log long messages.
+        if (body.length > MAX_BODY_PROCESSING_LENGTH) {
+            Logger.log(`Ignoring the end of long message with subject "${this.subject}"`);
+            body = body.substr(0, MAX_BODY_PROCESSING_LENGTH);
+        }
+        this.body = body;
     }
 
     toString() {
@@ -87,6 +93,12 @@ class ThreadData {
         }
         this.message_data_list = newMessages.map(message => new MessageData(message));
 
+        // Log if any dropped.
+        const numDropped = messages.length - newMessages.length;
+        if (numDropped > 0) {
+            const subject = this.message_data_list[0].subject;
+            Logger.log(`Ignoring oldest ${numDropped} messages in thread "${subject}"`);
+        }
     }
 
     validateActions() {

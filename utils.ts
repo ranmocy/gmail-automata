@@ -24,7 +24,7 @@ function withFailureEmailed<T>(taskName: string, func: () => T): T {
         // Email exceptions
         GmailApp.sendEmail(
             Session.getActiveUser().getEmail(),
-            'Log for failure in GMail Label Zen',
+            'Log for failure in Gmail Automata',
             `Captured an error: ${e}\n\n${Logger.getLog()}`);
         throw e;
     }

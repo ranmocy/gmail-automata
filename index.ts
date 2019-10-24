@@ -4,14 +4,14 @@
 // noinspection JSUnusedGlobalSymbols
 function onOpen(e: { authMode: GoogleAppsScript.Script.AuthMode }) {
     const ui = SpreadsheetApp.getUi();
-    const menu = ui.createMenu('GMail Label Zen');
+    const menu = ui.createMenu('Gmail Automata');
     if (e && e.authMode == ScriptApp.AuthMode.NONE) {
         menu.addItem('Configure this spreadsheet', 'configureSpreadsheets');
     } else {
         menu
             .addItem('Process now', 'processEmails')
             .addSeparator()
-            .addItem('Start auto processing(b/117476035)', 'setupTriggers')
+            .addItem('Start auto processing (b/117476035)', 'setupTriggers')
             .addItem('Stop auto processing', 'cancelTriggers')
             .addSeparator()
             .addSubMenu(

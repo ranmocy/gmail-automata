@@ -2,16 +2,37 @@ class Processor {
 
     private static processThread(session_data: SessionData, thread_data: ThreadData) {
         for (const message_data of thread_data.message_data_list) {
-            // Apply each rule until the earliest stage contains at least one matching rule is finished
+            // Apply each rule until matching a rule with a DONE action or matching a rule with
+            // FINISH_STAGE and then exhausting all other rules in that stage.
+            let min_stage = 0;
             let stopping_stage = Number.MAX_VALUE;
             for (const rule of session_data.rules) {
+                if (rule.stage < min_stage) {
+                    continue;
+                }
                 if (rule.stage > stopping_stage) {
                     break;
                 }
                 if (rule.condition.match(message_data)) {
                     console.log(`rule ${rule} matches message ${message_data}, apply action ${rule.thread_action}`);
                     thread_data.thread_action.mergeFrom(rule.thread_action);
-                    stopping_stage = rule.stage;
+                    let endThread = false;
+                    switch (thread_data.thread_action.action_after_match) {
+                        case ActionAfterMatchType.DONE:
+                            // Break out of switch and then out of loop.
+                            endThread = true;
+                            break;
+                        case ActionAfterMatchType.FINISH_STAGE:
+                            stopping_stage = rule.stage;
+                            break;
+                        case ActionAfterMatchType.NEXT_STAGE:
+                            min_stage = rule.stage + 1;
+                            stopping_stage = Number.MAX_VALUE;
+                            break;
+                    }
+                    if (endThread) {
+                        break;
+                    }
                 }
             }
 

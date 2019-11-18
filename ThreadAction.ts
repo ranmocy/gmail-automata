@@ -2,6 +2,8 @@ enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
 
 enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
 
+enum ActionAfterMatchType {DONE, FINISH_STAGE, NEXT_STAGE}
+
 class ThreadAction {
 
     private static ACTION_CONFIG_TYPE_FIELD_NAMES: (keyof Pick<ThreadAction, "important" | "read" | "auto_label">)[] = ["important", "read", "auto_label"];
@@ -11,6 +13,7 @@ class ThreadAction {
     public important: BooleanActionType = BooleanActionType.DEFAULT;
     public read: BooleanActionType = BooleanActionType.DEFAULT;
     public auto_label: BooleanActionType = BooleanActionType.DEFAULT;
+    public action_after_match: ActionAfterMatchType = ActionAfterMatchType.NEXT_STAGE;
 
     hasAnyAction() {
         return this.label_names.size > 0

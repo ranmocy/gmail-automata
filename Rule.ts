@@ -56,6 +56,15 @@ class Rule {
         return result;
     }
 
+    private static parseActionAfterMatchType(str: string): ActionAfterMatchType {
+        if (str.length === 0) {
+            return ActionAfterMatchType.FINISH_STAGE;
+        }
+        const result = ActionAfterMatchType[str.toUpperCase() as keyof typeof ActionAfterMatchType];
+        assert(result !== undefined, `Can't parse action_after_match value ${str}.`);
+        return result;
+    }
+
     public static getRules(): Rule[] {
         const values: string[][] = withTimer("GetRuleValues", () => {
             const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
@@ -78,6 +87,7 @@ class Rule {
             stage: -1,
             auto_label: -1,
             disabled: -1,
+            action_after_match: -1,
         };
         for (let column = 0; column < column_num; column++) {
             const name = values[0][column];
@@ -105,6 +115,8 @@ class Rule {
             thread_action.important = Rule.parseBooleanActionType(values[row][header_map["mark_important"]]);
             thread_action.read = Rule.parseBooleanActionType(values[row][header_map["mark_read"]]);
             thread_action.auto_label = Rule.parseBooleanActionType(values[row][header_map["auto_label"]]);
+            const actionAfterMatchStr = values[row][header_map["action_after_match"]] || '';
+            thread_action.action_after_match = Rule.parseActionAfterMatchType(actionAfterMatchStr);
 
             const stage = Rule.parseNumberValue(values[row][header_map["stage"]]);
             rules.push(new Rule(condition_str, thread_action, stage));

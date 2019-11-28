@@ -5,12 +5,12 @@ class Processor {
             // Apply each rule until matching a rule with a DONE action or matching a rule with
             // FINISH_STAGE and then exhausting all other rules in that stage.
             let min_stage = 0;
-            let stopping_stage = Number.MAX_VALUE;
+            let max_stage = Number.MAX_VALUE;
             for (const rule of session_data.rules) {
                 if (rule.stage < min_stage) {
                     continue;
                 }
-                if (rule.stage > stopping_stage) {
+                if (rule.stage > max_stage) {
                     break;
                 }
                 if (rule.condition.match(message_data)) {
@@ -23,11 +23,12 @@ class Processor {
                             endThread = true;
                             break;
                         case ActionAfterMatchType.FINISH_STAGE:
-                            stopping_stage = rule.stage;
+                        case ActionAfterMatchType.DEFAULT:
+                            max_stage = rule.stage;
                             break;
                         case ActionAfterMatchType.NEXT_STAGE:
                             min_stage = rule.stage + 1;
-                            stopping_stage = Number.MAX_VALUE;
+                            max_stage = Number.MAX_VALUE;
                             break;
                     }
                     if (endThread) {

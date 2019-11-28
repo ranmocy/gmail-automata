@@ -58,7 +58,7 @@ class Rule {
 
     private static parseActionAfterMatchType(str: string): ActionAfterMatchType {
         if (str.length === 0) {
-            return ActionAfterMatchType.FINISH_STAGE;
+            return ActionAfterMatchType.DEFAULT;
         }
         const result = ActionAfterMatchType[str.toUpperCase() as keyof typeof ActionAfterMatchType];
         assert(result !== undefined, `Can't parse action_after_match value ${str}.`);

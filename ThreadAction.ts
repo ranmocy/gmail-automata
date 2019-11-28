@@ -2,7 +2,7 @@ enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
 
 enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
 
-enum ActionAfterMatchType {DONE, FINISH_STAGE, NEXT_STAGE}
+enum ActionAfterMatchType {DEFAULT, DONE, FINISH_STAGE, NEXT_STAGE}
 
 class ThreadAction {
 
@@ -13,7 +13,7 @@ class ThreadAction {
     public important: BooleanActionType = BooleanActionType.DEFAULT;
     public read: BooleanActionType = BooleanActionType.DEFAULT;
     public auto_label: BooleanActionType = BooleanActionType.DEFAULT;
-    public action_after_match: ActionAfterMatchType = ActionAfterMatchType.NEXT_STAGE;
+    public action_after_match: ActionAfterMatchType = ActionAfterMatchType.DEFAULT;
 
     hasAnyAction() {
         return this.label_names.size > 0

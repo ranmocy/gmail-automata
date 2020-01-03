@@ -18,7 +18,7 @@ class Rule {
         if (str.length === 0) {
             return false;
         }
-        return ["1", "yes", "y", "true", "t"].indexOf(str.trim().toLowerCase()) >= 0;
+        return ["-1", "0", "no", "n", "false", "f"].indexOf(str.trim().toLowerCase()) < 0;
 
     }
 

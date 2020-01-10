@@ -64,7 +64,7 @@ function onOpen(e: { authMode: GoogleAppsScript.Script.AuthMode }) {
         menu
             .addItem('Process now', 'processEmails')
             .addSeparator()
-            .addItem('Start auto processing (b/117476035)', 'setupTriggers')
+            .addItem('Start auto processing', 'setupTriggers')
             .addItem('Stop auto processing', 'cancelTriggers')
             .addSeparator()
             .addSubMenu(

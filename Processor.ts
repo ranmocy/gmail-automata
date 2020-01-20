@@ -17,7 +17,7 @@ class Processor {
                     console.log(`rule ${rule} matches message ${message_data}, apply action ${rule.thread_action}`);
                     thread_data.thread_action.mergeFrom(rule.thread_action);
                     let endThread = false;
-                    switch (thread_data.thread_action.action_after_match) {
+                    switch (rule.thread_action.action_after_match) {
                         case ActionAfterMatchType.DONE:
                             // Break out of switch and then out of loop.
                             endThread = true;

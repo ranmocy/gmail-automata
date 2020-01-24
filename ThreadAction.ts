@@ -30,7 +30,9 @@ class ThreadAction {
 
     mergeFrom(other: Readonly<ThreadAction>): this {
         this.addLabels(Array.from(other.label_names.values()));
-        this.move_to = other.move_to;
+        if (other.move_to != InboxActionType.DEFAULT) {
+            this.move_to = other.move_to;
+        }
         for (const name of ThreadAction.ACTION_CONFIG_TYPE_FIELD_NAMES) {
             if (other[name] != BooleanActionType.DEFAULT) {
                 this[name] = other[name];

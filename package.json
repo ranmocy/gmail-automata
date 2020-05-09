@@ -9,6 +9,7 @@
   "author": "Ranmocy",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "@types/google-apps-script": "0.0.37"
+    "@types/google-apps-script": "0.0.37",
+    "@google/clasp": "^2.3.0"
   }
 }

@@ -27,7 +27,7 @@ the reason behind.
 
 ## Setup
 
-1. Clone this [spreadsheet](spreadsheet): File -> Make a copy. You need your own
+1. Clone this [spreadsheet][spreadsheet]: File -> Make a copy. You need your own
 version to process your emails on your behalf. You need to grant permissions for
 your new spreadsheet to continue.
 
@@ -82,7 +82,7 @@ each columns.
 
 1. In old spreadsheet, click menu "Gmail Automata" -> "Stop auto processing" to
 remove auto triggering
-2. Re-fork the main [spreadsheet](spreadsheet), copy your settings in "configs",
+2. Re-fork the main [spreadsheet][spreadsheet], copy your settings in "configs",
 "rules" from old spreadsheet to the newly forked one
 3. In new forked spreadsheet, click menu "Gmail Automata" ->
 "Start auto processing" to setup auto triggering

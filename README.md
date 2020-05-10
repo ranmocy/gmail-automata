@@ -31,7 +31,14 @@ the reason behind.
 version to process your emails on your behalf. You need to grant permissions for
 your new spreadsheet to continue.
 
-    TODO: Create public version of the spreadsheet
+    Notice: If you can't see "Gmail Automata" in the spreadsheet menu, you may
+    need to manually add the trigger:
+    1. In the spreadsheet, open "Tools" -> "Script editor"
+    2. In the editor, open "Edit" -> "Current project's triggers"
+    3. In Apps Script dashboard, click "Add Trigger"
+    4. "Choose which function to run": select "onOpen"
+    5. "Select event type": select "On open"
+    6. Click "Save"
 
 2. Review sheets "configs" and "rules". Replace "mocy@google.com" with your
 email address in those sheets.
@@ -128,4 +135,4 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 3. Auto labeling
 6. Auto reply action
 
-[spreadsheet]: https://docs.google.com/spreadsheets/d/1GB8OerhRTTHUf067Y-iU2Y8MVueg4GLAi6P3HapqwH4/edit?usp=sharing
+[spreadsheet]: https://docs.google.com/spreadsheets/d/1pkx69yw7_gjujuqTPuWhpMiW481RzCeLBizkq0HczcI/edit?usp=sharing

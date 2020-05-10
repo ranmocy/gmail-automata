@@ -30,7 +30,9 @@ the reason behind.
 1. Clone this [spreadsheet](spreadsheet): File -> Make a copy. You need your own
 version to process your emails on your behalf. You need to grant permissions for
 your new spreadsheet to continue.
+
     TODO: Create public version of the spreadsheet
+
 2. Review sheets "configs" and "rules". Replace "mocy@google.com" with your
 email address in those sheets.
 3. In Gmail, create label "0unprocessed"
@@ -46,6 +48,7 @@ step 5 until you are satisfied.
 as a backup!) and add following ones (*Remember to replace email with yours!*
 Also replace "urgent" to a tag you wish to bypass the script to reduce the
 latency):
+
     ```text
     Matches: from:(-apps-scripts-notifications@google.com) -in:chats to:(-mocy+urgent@google.com) -{label:mute}
     Do this: Skip Inbox
@@ -54,6 +57,7 @@ latency):
     Matches: from:(-mocy@google.com,-apps-scripts-notifications@google.com) to:(-mocy+urgent@google.com) -in:chats -{label:mute}
     Do this: Apply label "0unprocessed"
     ```
+
 8. [Optional] In Gmail settings -> "Inbox", switch "Inbox type" to
 "Important first"
 9. Click menu "Gmail Automata" -> "Start auto processing" to setup auto
@@ -97,13 +101,16 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 
 ## Deploy
 
-1. Login CLASP: `npx clasp login` and authorize the app in the browser.
+1. Setup local development enviroment following the section
+[Dev setup](#dev-setup) above.
 2. Add ".clasp.json" file: `cp .clasp.json.example .clasp.json`.
 3. Update the script id in ".clasp.json" file. To find the script id:
-    1. Setup the script following the section [Setup](#Setup) above.
+    1. Setup the script following the section [Setup](#Setup) above if you
+    haven't do it.
     2. In the spreadsheet, click menu "Tools" -> "Script Editor".
     3. In the script editor, click menu "File" > "Project properties" > "Info".
-4. Deploy current version: `npx clasp deploy`.
+4. Login CLASP: `npx clasp login` and authorize the app in the browser.
+5. Deploy current version: `npx clasp deploy`.
 
 ## Changelog
 

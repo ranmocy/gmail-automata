@@ -28,32 +28,36 @@ the reason behind.
 ## Setup
 
 1. Clone this [spreadsheet](spreadsheet): File -> Make a copy. You need your own
-  version to process your emails on your behalf. You need to grant permissions
-  for your new spreadsheet to continue.
+version to process your emails on your behalf. You need to grant permissions for
+your new spreadsheet to continue.
     TODO: Create public version of the spreadsheet
 2. Review sheets "configs" and "rules". Replace "mocy@google.com" with your
-  email address in those sheets.
+email address in those sheets.
 3. In Gmail, create label "0unprocessed"
 4. If you want to test before automation, go to step 5; Otherwise, go to step 7.
-5. Add some (<=50, since the script only process at most 50 threads for each
-  execution, due to performance consideration) emails to "0unprocessed" label.
-  Click menu "Gmail Automata" -> "Process now" to trigger one time processing.
+5. Add some (<=50) emails to "0unprocessed" label. Click menu "Gmail Automata"
+-> "Process now" to trigger one time processing. *Notice that if you add too
+many threads, each execution would only process the first 50 threads.* *Also if
+a thread is too old (twice the processing interval, 10 minutes by default), only
+the latest email would be processed.*
 6. Check emails result with label "0processed" and update rules and go back to
-  step 5 until you are satisfied.
+step 5 until you are satisfied.
 7. In Gmail's settings, empty your current filters (better to export them first
-  as a backup!) and add following ones (*Remember to replace email with yours!*
-  Also replace "urgent" to a tag you wish to bypass the script to reduce the
-  latency):
+as a backup!) and add following ones (*Remember to replace email with yours!*
+Also replace "urgent" to a tag you wish to bypass the script to reduce the
+latency):
+    ```text
     Matches: from:(-apps-scripts-notifications@google.com) -in:chats to:(-mocy+urgent@google.com) -{label:mute}
     Do this: Skip Inbox
     Matches: from:(mocy@google.com) to:(mocy@google.com)
     Do this: Apply label "0unprocessed"
     Matches: from:(-mocy@google.com,-apps-scripts-notifications@google.com) to:(-mocy+urgent@google.com) -in:chats -{label:mute}
     Do this: Apply label "0unprocessed"
+    ```
 8. [Optional] In Gmail settings -> "Inbox", switch "Inbox type" to
-  "Important first"
+"Important first"
 9. Click menu "Gmail Automata" -> "Start auto processing" to setup auto
-  triggering
+triggering
 10. You are good to go! Enjoy!
 
 ## Customization
@@ -66,11 +70,11 @@ each columns.
 ### By forking again
 
 1. In old spreadsheet, click menu "Gmail Automata" -> "Stop auto processing" to
-  remove auto triggering
+remove auto triggering
 2. Re-fork the main [spreadsheet](spreadsheet), copy your settings in "configs",
-  "rules" from old spreadsheet to the newly forked one
+"rules" from old spreadsheet to the newly forked one
 3. In new forked spreadsheet, click menu "Gmail Automata" ->
-  "Start auto processing" to setup auto triggering
+"Start auto processing" to setup auto triggering
 4. Delete old spreadsheet
 
 ### By script deploy
@@ -103,8 +107,8 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 
 ## Changelog
 
-2020-01-10: First Google internal beta version
-2019-04-04: First early adopter alpha version
+* 2020-01-10: First Google internal beta version
+* 2019-04-04: First early adopter alpha version
 
 
 ## Roadmap (TODO)

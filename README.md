@@ -40,7 +40,7 @@ your new spreadsheet to continue.
     5. "Select event type": select "On open"
     6. Click "Save"
 
-2. Review sheets "configs" and "rules". Replace "mocy@google.com" with your
+2. Review sheets "configs" and "rules". Replace "ranmocy@gmail.com" with your
 email address in those sheets.
 3. In Gmail, create label "0unprocessed"
 4. If you want to test before automation, go to step 5; Otherwise, go to step 7.
@@ -57,11 +57,11 @@ Also replace "urgent" to a tag you wish to bypass the script to reduce the
 latency):
 
     ```text
-    Matches: from:(-apps-scripts-notifications@google.com) -in:chats to:(-mocy+urgent@google.com) -{label:mute}
+    Matches: from:(-apps-scripts-notifications@google.com) -in:chats to:(-YOUR_EMAIL+urgent@gmail.com) -{label:mute}
     Do this: Skip Inbox
-    Matches: from:(mocy@google.com) to:(mocy@google.com)
+    Matches: from:(-YOUR_EMAIL@gmail.com) to:(YOUR_EMAIL@gmail.com)
     Do this: Apply label "0unprocessed"
-    Matches: from:(-mocy@google.com,-apps-scripts-notifications@google.com) to:(-mocy+urgent@google.com) -in:chats -{label:mute}
+    Matches: from:(-YOUR_EMAIL@gmail.com,-apps-scripts-notifications@google.com) to:(-YOUR_EMAIL+urgent@gmail.com) -in:chats -{label:mute}
     Do this: Apply label "0unprocessed"
     ```
 

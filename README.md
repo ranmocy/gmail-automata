@@ -59,7 +59,7 @@ latency):
     ```text
     Matches: from:(-apps-scripts-notifications@google.com) -in:chats to:(-YOUR_EMAIL+urgent@gmail.com) -{label:mute}
     Do this: Skip Inbox
-    Matches: from:(-YOUR_EMAIL@gmail.com) to:(YOUR_EMAIL@gmail.com)
+    Matches: from:(YOUR_EMAIL@gmail.com) to:(YOUR_EMAIL@gmail.com)
     Do this: Apply label "0unprocessed"
     Matches: from:(-YOUR_EMAIL@gmail.com,-apps-scripts-notifications@google.com) to:(-YOUR_EMAIL+urgent@gmail.com) -in:chats -{label:mute}
     Do this: Apply label "0unprocessed"

@@ -2,7 +2,6 @@ interface MutableConfig {
     unprocessed_label: string;
     processed_label: string;
     processing_failed_label: string;
-    personal_label: string;
     processing_frequency_in_minutes: number;
     hour_of_day_to_run_sanity_checking: number;
     go_link: string;
@@ -14,7 +13,6 @@ class Config implements Readonly<MutableConfig> {
     public readonly unprocessed_label: string;
     public readonly processed_label: string;
     public readonly processing_failed_label: string;
-    public readonly personal_label: string;
     public readonly processing_frequency_in_minutes: number;
     public readonly hour_of_day_to_run_sanity_checking: number;
     public readonly go_link: string;
@@ -33,7 +31,6 @@ class Config implements Readonly<MutableConfig> {
             unprocessed_label: "unprocessed",
             processed_label: "processed",
             processing_failed_label: "error",
-            personal_label: "personal",
             processing_frequency_in_minutes: 5,
             hour_of_day_to_run_sanity_checking: 0,
             go_link: "",
@@ -68,7 +65,6 @@ class Config implements Readonly<MutableConfig> {
                 case "unprocessed_label":
                 case "processed_label":
                 case "processing_failed_label":
-                case "personal_label":
                 case "go_link":
                 case "auto_labeling_parent_label": {
                     config[name] = value;

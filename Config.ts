@@ -71,7 +71,7 @@ class Config implements Readonly<MutableConfig> {
                     break;
                 }
                 default: {
-                    throw `Invalid config: ${name}`;
+                    console.error(`Invalid config: ${name}`);
                 }
             }
         }

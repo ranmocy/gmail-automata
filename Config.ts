@@ -24,7 +24,6 @@ class Config implements Readonly<MutableConfig> {
     private static validate(config: Config) {
         assert(config.unprocessed_label.length > 0, "unprocessed_label can't be empty");
         assert(config.processed_label.length > 0, "processed_label can't be empty");
-        assert(config.personal_label.length > 0, "personal_label can't be empty");
         assert(config.processing_frequency_in_minutes >= 5, "processing_frequency_in_minutes can't be smaller than 5");
         assert(config.max_threads <= 100, "max_threads can't be greater than 100");
     }

@@ -215,16 +215,23 @@ class Condition {
                 `Expected ${condition_str} matches email ${message}, but failed`);
         }
 
-        c(`
-            (and
-              (from abc@gmail.com)
-              (or
-                (receiver ijl@gmail.com)
-                (receiver xyz@gmail.com)))`,
+        c(`(and
+             (from abc@gmail.com)
+             (or
+               (receiver ijl@gmail.com)
+               (receiver xyz@gmail.com)))`,
             {
                 getFrom: () => 'dd <abc+dd@gmail.com>',
                 getTo: () => 'something+-random@gmail.com',
                 getCc: () => 'xyz+tag@gmail.com',
+            },
+            true);
+        c(`(or
+             (receiver abc@gmail.com)
+             (receiver abc@corp.com))",
+            {
+                getFrom: () => 'DDD EEE <def@corp.com>',
+                getTo: () => 'AAA BBB <abc@corp.com>, DDD EEE <def@corp.com>',
             },
             true);
         Logger.log(`Condition.testAll() all pass`);

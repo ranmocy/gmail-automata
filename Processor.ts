@@ -36,6 +36,7 @@ class Processor {
                     }
                 }
             }
+            console.log(`Message is processed at stage ${max_stage}`);
 
             // TODO: revisiting if auto labeling should be done differently
             // update auto labeling

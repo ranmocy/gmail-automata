@@ -23,8 +23,9 @@ class SessionData {
         this.rules = withTimer("getRules", () => Rule.getRules());
 
         this.processing_start_time = new Date();
+        // Check back two processing intervals to make sure we checked all messages in the thread
         this.oldest_to_process = new Date(
-            this.processing_start_time.getTime() - this.config.processing_frequency_in_minutes * 2 * 1000);
+            this.processing_start_time.getTime() - 2 * this.config.processing_frequency_in_minutes * 60 * 1000);
     }
 
     getOrCreateLabel(name: string) {

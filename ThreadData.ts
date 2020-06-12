@@ -103,7 +103,11 @@ class ThreadData {
 
     validateActions() {
         if (!this.thread_action.hasAnyAction()) {
-            throw `Thread "${this.raw.getFirstMessageSubject()}" has no action, does it match any rule?`;
+            const messages = this.raw.getMessages();
+            const last_message = messages[messages.length - 1];
+            const from = last_message.getFrom();
+            const to = last_message.getTo();
+            throw `Thread "${this.raw.getFirstMessageSubject()}" from ${from} to ${to} has no action, does it match any rule?`;
         }
     }
 

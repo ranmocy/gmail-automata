@@ -119,7 +119,7 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
     2. In the spreadsheet, click menu "Tools" -> "Script Editor".
     3. In the script editor, click menu "File" > "Project properties" > "Info".
 4. Login CLASP: `npx clasp login` and authorize the app in the browser.
-5. Deploy current version: `npx clasp deploy`.
+5. Deploy current version: `npx clasp push`.
 
 ## Changelog
 

@@ -1,3 +1,6 @@
+import {MessageData} from './ThreadData';
+import {assert} from './utils';
+
 enum ConditionType {
     AND, OR, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY,
 }
@@ -11,7 +14,7 @@ enum ConditionType {
  * MATCHER := subject | from | to | cc | bcc | list | sender | receiver | content
  * CONDITION_LIST := CONDITION_EXP | CONDITION_EXP CONDITION_LIST
  */
-class Condition {
+export default class Condition {
 
     private static parseSubConditions(rest_str: string, condition_str: string): Condition[] {
         const result = [];
@@ -228,12 +231,11 @@ class Condition {
             true);
         c(`(or
              (receiver abc@gmail.com)
-             (receiver abc@corp.com))",
+             (receiver abc@corp.com))`,
             {
                 getFrom: () => 'DDD EEE <def@corp.com>',
                 getTo: () => 'AAA BBB <abc@corp.com>, DDD EEE <def@corp.com>',
             },
             true);
-        Logger.log(`Condition.testAll() all pass`);
     }
 }

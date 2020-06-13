@@ -1,5 +1,7 @@
 # Gmail Automata
 
+[![Build Status](https://travis-ci.com/ranmocy/gmail-automata.svg?branch=master)](https://travis-ci.com/ranmocy/gmail-automata)
+
 ## Introduction
 
 The purpose of this project is to do a better job to replace existing Gmail

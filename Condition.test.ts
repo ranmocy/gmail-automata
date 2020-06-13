@@ -1,3 +1,3 @@
-import Condition from '../Condition';
+import Condition from './Condition';
 
 it('Passes Condition tests', Condition.testAll);

@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "outDir": "build",
     "module": "none",
-    "target": "es6",
+    "target": "es2019",
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitUseStrict": true,

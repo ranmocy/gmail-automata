@@ -2,7 +2,7 @@ import {MessageData} from './ThreadData';
 import {assert} from './utils';
 
 enum ConditionType {
-    AND, OR, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY,
+    AND, OR, NOT, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY,
 }
 
 /**
@@ -10,7 +10,7 @@ enum ConditionType {
  *
  * Syntax:
  * CONDITION_EXP := (OPERATOR CONDITION_LIST) | (MATCHER STRING)
- * OPERATOR := and | or
+ * OPERATOR := and | or | not
  * MATCHER := subject | from | to | cc | bcc | list | sender | receiver | content
  * CONDITION_LIST := CONDITION_EXP | CONDITION_EXP CONDITION_LIST
  */
@@ -82,6 +82,13 @@ export default class Condition {
                 this.sub_conditions = Condition.parseSubConditions(rest_str, condition_str);
                 break;
             }
+            case ConditionType.NOT: {
+                this.sub_conditions = Condition.parseSubConditions(rest_str, condition_str);
+                if (this.sub_conditions.length !== 1) {
+                  throw `Conditions of type ${type_str} must have exactly one sub-condition, but found ${this.sub_conditions.length}: ${rest_str}`;
+                }
+                break;
+            }
             case ConditionType.FROM:
             case ConditionType.TO:
             case ConditionType.CC:
@@ -119,6 +126,9 @@ export default class Condition {
                     }
                 }
                 return false;
+            }
+            case ConditionType.NOT: {
+              return !this.sub_conditions[0].match(message_data);
             }
             case ConditionType.FROM: {
                 return this.matchAddress(message_data.from);
@@ -235,6 +245,16 @@ export default class Condition {
             {
                 getFrom: () => 'DDD EEE <def@corp.com>',
                 getTo: () => 'AAA BBB <abc@corp.com>, DDD EEE <def@corp.com>',
+            },
+            true);
+        c(`(not (receiver abc@gmail.com))`,
+            {
+                getTo: () => 'AAA BBB <abc@gmail.com>',
+            },
+            false);
+        c(`(not (receiver abc@gmail.com))`,
+            {
+                getTo: () => 'AAA BBB <def@gmail.com>',
             },
             true);
     }

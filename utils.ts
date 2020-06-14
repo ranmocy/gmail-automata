@@ -1,10 +1,10 @@
-function assert(condition: boolean, msg: string) {
+export function assert(condition: boolean, msg: string) {
     if (!condition) {
         throw msg;
     }
 }
 
-function withTimer<T>(taskName: string, func: () => T): T {
+export function withTimer<T>(taskName: string, func: () => T): T {
     const startTime = new Date();
     try {
         const res = func();
@@ -17,7 +17,7 @@ function withTimer<T>(taskName: string, func: () => T): T {
     }
 }
 
-function withFailureEmailed<T>(taskName: string, func: () => T): T {
+export function withFailureEmailed<T>(taskName: string, func: () => T): T {
     try {
         return withTimer(taskName, func);
     } catch (e) {

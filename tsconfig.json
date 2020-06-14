@@ -13,7 +13,8 @@
     "noUnusedLocals": true,
     "importHelpers": true,
     "strictNullChecks": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "esModuleInterop": true
   },
   "exclude": [
     "build",

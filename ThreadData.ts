@@ -1,7 +1,9 @@
+import {assert, withTimer} from './utils';
+
 // Represents a message in a thread
 const MAX_BODY_PROCESSING_LENGTH = 65535;
 
-class MessageData {
+export class MessageData {
 
     private static parseAddresses(str: string): string[] {
         return str.toLowerCase().split(',').map(address => address.trim());
@@ -75,7 +77,7 @@ class MessageData {
 }
 
 // Represents a thread
-class ThreadData {
+export class ThreadData {
     private readonly raw: GoogleAppsScript.Gmail.GmailThread;
 
     public readonly message_data_list: MessageData[];

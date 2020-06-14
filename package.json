@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node node_modules/jest/bin/jest.js"
   },
   "author": "Ranmocy",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@google/clasp": "^2.3.0",
     "@types/google-apps-script": "^1.0.14",
-    "@google/clasp": "^2.3.0"
+    "@types/jest": "^26.0.0",
+    "jest": "^26.0.1",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.9.5"
   }
 }

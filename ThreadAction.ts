@@ -16,7 +16,7 @@
 
 export enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
 
-export enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
+export enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH, NOTHING}
 
 export enum ActionAfterMatchType {DEFAULT, DONE, FINISH_STAGE, NEXT_STAGE}
 

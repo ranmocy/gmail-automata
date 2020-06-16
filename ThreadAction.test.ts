@@ -1,4 +1,4 @@
-import ThreadAction  from './ThreadAction';
+import ThreadAction, {InboxActionType} from './ThreadAction';
 import Utils from './utils';
 
 it('Adds parent labels', () => {
@@ -25,4 +25,19 @@ it('Does not add parent labels for empty list', () => {
 
   Utils.assert(action.label_names.size === 0,
     `Expected empty set, but got ${Array.from(action.label_names).join(', ')}`);
+});
+
+it('Correctly merges NOTHING actions', () => {
+  const thread_data_action = new ThreadAction();
+  const rule_action = new ThreadAction();
+  rule_action.move_to = InboxActionType.NOTHING;
+
+  Utils.assert(thread_data_action.move_to == InboxActionType.DEFAULT,
+    `move_to should be DEFAULT, but is ${thread_data_action.move_to}`);
+  thread_data_action.mergeFrom(rule_action);
+
+  Utils.assert(thread_data_action.move_to == InboxActionType.NOTHING,
+    `move_to should be NOTHING, but is ${thread_data_action.move_to}`);
+  Utils.assert(rule_action.toString() == '>NOTHING +L',
+    `rule_action should be '>NOTHING +L', but is ${rule_action}`);
 });

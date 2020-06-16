@@ -34,8 +34,9 @@ export class Processor {
                     break;
                 }
                 if (rule.condition.match(message_data)) {
-                    console.log(`rule ${rule} matches message ${message_data}, apply action ${rule.thread_action}`);
+                    console.log(`Rule ${rule} matches message ${message_data}, apply action ${rule.thread_action}`);
                     thread_data.thread_action.mergeFrom(rule.thread_action);
+                    console.log(`Thread action after merging: ${thread_data.thread_action}`)
                     let endThread = false;
                     switch (rule.thread_action.action_after_match) {
                         case ActionAfterMatchType.DONE:

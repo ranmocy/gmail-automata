@@ -122,19 +122,19 @@ export class ThreadData {
     }
 
     validateActions() {
-        if (!this.thread_action.hasAnyAction()) {
+        if (!this.thread_action.hasAnyAction() && this.thread_action.move_to != InboxActionType.NOTHING) {
             const messages = this.raw.getMessages();
             const last_message = messages[messages.length - 1];
             const from = last_message.getFrom();
             const to = last_message.getTo();
-            throw `Thread "${this.raw.getFirstMessageSubject()}" from ${from} to ${to} has no action, does it match any rule?`;
+            throw `Thread "${this.raw.getFirstMessageSubject()}" from ${from} to ${to} has default action (${this.thread_action}), does it match any rule?`;
         }
     }
 
     static applyAllActions(session_data: SessionData, all_thread_data: ThreadData[]) {
         const label_action_map: { [key: string]: GoogleAppsScript.Gmail.GmailThread[] } = {};
         const moving_action_map = new Map<InboxActionType, GoogleAppsScript.Gmail.GmailThread[]>([
-            [InboxActionType.DEFAULT, []], [InboxActionType.INBOX, []], [InboxActionType.ARCHIVE, []], [InboxActionType.TRASH, []]
+            [InboxActionType.DEFAULT, []], [InboxActionType.INBOX, []], [InboxActionType.ARCHIVE, []], [InboxActionType.TRASH, []], [InboxActionType.NOTHING, []]
         ]);
         const important_action_map = new Map<BooleanActionType, GoogleAppsScript.Gmail.GmailThread[]>([
             [BooleanActionType.DEFAULT, []], [BooleanActionType.ENABLE, []], [BooleanActionType.DISABLE, []]

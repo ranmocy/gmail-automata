@@ -125,7 +125,7 @@ class Rule {
         // sort by stage
         rules.sort((a: Rule, b: Rule) => a.stage - b.stage);
 
-        console.log(`Parsed rules:\n${rules.map(rule => rule.toString()).join("\n")}`);
+        console.log(`Parsed rules:\n${rules.map(rule => rule.toString()).join("\n---\n")}`);
 
         return rules;
     }

@@ -1,6 +1,6 @@
 enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
 
-enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
+enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH, NOTHING}
 
 enum ActionAfterMatchType {DEFAULT, DONE, FINISH_STAGE, NEXT_STAGE}
 
@@ -30,7 +30,7 @@ class ThreadAction {
 
     mergeFrom(other: Readonly<ThreadAction>): this {
         this.addLabels(Array.from(other.label_names.values()));
-        if (other.move_to != InboxActionType.DEFAULT) {
+        if (other.move_to != InboxActionType.DEFAULT && other.move_to != InboxActionType.NOTHING) {
             this.move_to = other.move_to;
         }
         for (const name of ThreadAction.ACTION_CONFIG_TYPE_FIELD_NAMES) {

@@ -1,6 +1,8 @@
 import {MessageData} from './ThreadData';
 import {assert} from './utils';
 
+const RE_FLAG_PATTERN = /^\/(.*)\/([gimuys]*)$/;
+
 enum ConditionType {
     AND, OR, NOT, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY,
 }
@@ -49,9 +51,11 @@ export default class Condition {
 
     private static parseRegExp(pattern: string, condition_str: string, matching_address: boolean): RegExp {
         assert(pattern.length > 0, `Condition ${condition_str} should have value but not found`);
-        if (pattern.startsWith('/') && pattern.endsWith('/')) {
+        const match = pattern.match(RE_FLAG_PATTERN);
+        if (match !== null) {
             // normal regexp
-            return new RegExp(pattern.substring(1, pattern.length - 1));
+            const [/* ignored */, p, flags] = match;
+            return new RegExp(p, flags);
         } else if (pattern.startsWith('"') && pattern.endsWith('"')) {
             // exact matching
             return new RegExp(`(^|<)${Condition.escapeRegExp(pattern.substring(1, pattern.length - 1))}($|>)`, 'i');
@@ -213,6 +217,8 @@ export default class Condition {
         t('/some-.*@gmail.com/', 'some-mailing-list@gmail.com', true, true);
         t('/some-.*@gmail.com/', 'some-mailing-list+tag@gmail.com', true, true);
         t('/some-.*@gmail.com/', 'some2-mailing-list@gmail.com', true, false);
+        t('/feedback access request/i', 'Feedback access request', false, true);
+        t('/abc.def/si', 'Abc\nDef', false, true);
 
         const base_message = {
             getFrom: () => '',

@@ -188,7 +188,9 @@ export class ThreadData {
             Logger.log(`Updated threads status.`);
 
             const all_threads = all_thread_data.map(data => data.raw);
-            session_data.getOrCreateLabel(session_data.config.processed_label).addToThreads(all_threads);
+            if (session_data.config.processed_label.length > 0){
+                session_data.getOrCreateLabel(session_data.config.processed_label).addToThreads(all_threads);
+            }
             session_data.getOrCreateLabel(session_data.config.unprocessed_label).removeFromThreads(all_threads);
             Logger.log(`Mark as processed.`);
         });

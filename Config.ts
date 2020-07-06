@@ -21,7 +21,6 @@ class Config implements Readonly<MutableConfig> {
 
     private static validate(config: Config) {
         assert(config.unprocessed_label.length > 0, "unprocessed_label can't be empty");
-        assert(config.processed_label.length > 0, "processed_label can't be empty");
         assert(config.processing_frequency_in_minutes >= 5, "processing_frequency_in_minutes can't be smaller than 5");
         assert(config.max_threads <= 100, "max_threads can't be greater than 100");
     }
@@ -29,7 +28,7 @@ class Config implements Readonly<MutableConfig> {
     public static getConfig(): Config {
         let config: MutableConfig = {
             unprocessed_label: "unprocessed",
-            processed_label: "processed",
+            processed_label: "",
             processing_failed_label: "error",
             processing_frequency_in_minutes: 5,
             hour_of_day_to_run_sanity_checking: 0,

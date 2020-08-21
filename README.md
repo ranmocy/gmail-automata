@@ -4,28 +4,36 @@
 
 ## Introduction
 
-The purpose of this project is to do a better job to replace existing Gmail
-filters.
+Gmail Automata is to do a better job replacing existing Gmail filters.
 
-The idea is to archive all incoming emails by default, and attach it to
-the "unprocessed" label. Then a background script which is included in
-this spreadsheet will be automatically triggerred every 5 minutes (or according
-to the "configs"). When the script runs, it fetch all emails with "unprocessed"
-label, appy actions to those emails according to the "rules. Finally, move them
+* It provides a generic solution for filtering emails, so you could use it for
+  both your corp and personal accounts.
+* It provides powerful conditions (Lisp-like S-expression) so that you could
+  target any message you want.
+* It has flexible actions. Each action is independent allowing any the
+  combination you need.
+* All rules are managed in a Google Spreadsheet where you could easily
+  copy/paste/fork/backup, re-order, group, etc.
+
+The idea is to archive all incoming emails by default and attach it to the
+"unprocessed" label. Then a background script which is included in this
+spreadsheet will run automatically every 5 minutes (or according to the
+"configs"). When the script runs, it fetches all emails with the "unprocessed"
+label, apply actions to those emails according to the "rules. Finally, move them
 to the "processed" label and remove them from the "unprocessed" one.
 
 During the process, it goes through all unprocessed email threads. For each
-email in the thread, check all rules in order of "stage". If a rule's
-"condition" matches that email, the associated actions will be applied to the
-thread. If any rule matches, the processing of the email will stop after all
-rules with the same stage applied. If no rule matches the thread, it will treat
-it as error in case it's a new type of emails. *You could add a rule to match
-all emails at the end if you don't like this behavior.*
+email in the thread, check all rules in the order specified by the "stage". If a
+rule's "condition" matches that email, the associated actions will be applied to
+the thread. If any rule matches, the processing of the email will stop after all
+rules with the same stage are applied. If no rule matches the thread, it will
+treat it as an error in case it's a new type of email. *You could add a rule to
+match all emails at the end if you don't like this behavior.*
 
 If any error happens to the processing, the email thread will be moved to inbox
-with label "error" by default, so you won't miss it because of this script. Also
-script executor will send you email about the failure, so you could check what's
-the reason behind.
+with label "error" by default, so you won't miss it because of this script.
+Also, the script executor will send you an email about the failure, so you could
+check what's the reason behind it.
 
 ## Setup
 

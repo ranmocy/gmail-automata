@@ -54,10 +54,10 @@ export default class Condition {
             return new RegExp(pattern.substring(1, pattern.length - 1));
         } else if (pattern.startsWith('"') && pattern.endsWith('"')) {
             // exact matching
-            return new RegExp(`(^|<)${Condition.escapeRegExp(pattern.substring(1, pattern.length - 1))}($|>)`);
+            return new RegExp(`(^|<)${Condition.escapeRegExp(pattern.substring(1, pattern.length - 1))}($|>)`, 'i');
         } else if (matching_address) {
             // ignoring label in address
-            return new RegExp(`(^|<)${Condition.escapeRegExp(pattern).replace('@', '(\\+[^@]+)?@')}($|>)`);
+            return new RegExp(`(^|<)${Condition.escapeRegExp(pattern).replace('@', '(\\+[^@]+)?@')}($|>)`, 'i');
         } else {
             // containing matching
             return new RegExp(Condition.escapeRegExp(pattern));
@@ -205,6 +205,10 @@ export default class Condition {
         t('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list+tag1@gmail.com', true, true);
         t('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list+tag2@gmail.com', true, false);
 
+        // matches are case-insensitive
+        t('abc+Def@gmail.com', 'abc+def@gmail.com', true, true);
+        t('"abc+Def@gmail.com"', 'abc+def@gmail.com', true, true);
+
         // regexp matching
         t('/some-.*@gmail.com/', 'some-mailing-list@gmail.com', true, true);
         t('/some-.*@gmail.com/', 'some-mailing-list+tag@gmail.com', true, true);
@@ -255,6 +259,16 @@ export default class Condition {
         c(`(not (receiver abc@gmail.com))`,
             {
                 getTo: () => 'AAA BBB <def@gmail.com>',
+            },
+            true);
+        c(`(receiver abc+Def@bar.com)`,
+            {
+                getTo: () => 'abc+Def@bar.com',
+            },
+            true);
+        c(`(receiver "abc+Def@bar.com")`,
+            {
+                getTo: () => 'abc+Def@bar.com',
             },
             true);
     }

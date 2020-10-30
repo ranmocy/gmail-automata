@@ -68,7 +68,8 @@ function onOpen(e: { authMode: GoogleAppsScript.Script.AuthMode }) {
             .addSeparator()
             .addSubMenu(
                 ui.createMenu('DEBUG')
-                    .addItem('Run tests', 'testAll'));
+                    .addItem('Run tests', 'testAll')
+                    .addItem('Run one-off script', 'oneOffScript'));
     }
     menu.addToUi();
 }
@@ -116,6 +117,34 @@ function cancelTriggers() {
             ScriptApp.deleteTrigger(trigger);
         });
     });
+}
+
+/**
+ * Runs a one-off script on the sheet.
+ *
+ * This may be helpful for a quick hack to make a change on a big sheet, and it
+ * can be run either from the DEBUG menu in the sheet itself or the
+ * script.google.com editor.
+ */
+function oneOffScript() {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
+    const numRows = sheet.getLastRow();
+    const numColumns = sheet.getLastColumn();
+    let stageColumnNumber = -1;
+    for (let column = 1; column <= numColumns; column++) {
+        const r = sheet.getRange(1, column);
+        if (r.getValue() === 'stage') {
+            stageColumnNumber = column;
+        }
+    }
+    for (let row = 1; row <= numRows; row++) {
+        const range = sheet.getRange(row, 1, row, numColumns);
+        const stage = range.getCell(1, stageColumnNumber);
+        const n = stage.getValue();
+        if (Number.isFinite(n) && n < 1000) {
+          stage.setValue(n * 10);
+        }
+    }
 }
 
 function testAll() {

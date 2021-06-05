@@ -132,7 +132,7 @@ export class ThreadData {
     static applyAllActions(session_data: SessionData, all_thread_data: ThreadData[]) {
         const label_action_map: { [key: string]: GoogleAppsScript.Gmail.GmailThread[] } = {};
         const moving_action_map = new Map<InboxActionType, GoogleAppsScript.Gmail.GmailThread[]>([
-            [InboxActionType.DEFAULT, []], [InboxActionType.INBOX, []], [InboxActionType.ARCHIVE, []], [InboxActionType.TRASH, []]
+            [InboxActionType.DEFAULT, []], [InboxActionType.INBOX, []], [InboxActionType.ARCHIVE, []], [InboxActionType.TRASH, []], [InboxActionType.NOTHING, []]
         ]);
         const important_action_map = new Map<BooleanActionType, GoogleAppsScript.Gmail.GmailThread[]>([
             [BooleanActionType.DEFAULT, []], [BooleanActionType.ENABLE, []], [BooleanActionType.DISABLE, []]

@@ -17,7 +17,7 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
-    "importHelpers": true,
+    "importHelpers": false,
     "strictNullChecks": true,
     "experimentalDecorators": true,
     "esModuleInterop": true

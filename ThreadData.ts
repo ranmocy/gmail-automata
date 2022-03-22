@@ -15,6 +15,7 @@
  */
 
 import {assert, withTimer} from './utils';
+import ThreadAction, {BooleanActionType, InboxActionType} from 'ThreadAction';
 
 // Represents a message in a thread
 const MAX_BODY_PROCESSING_LENGTH = 65535;

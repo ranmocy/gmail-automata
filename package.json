@@ -4,16 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/jest/bin/jest.js"
+    "test": "jest"
   },
   "author": "Ranmocy",
   "license": "APACHE-2.0",
   "devDependencies": {
-    "@google/clasp": "^2.3.0",
-    "@types/google-apps-script": "^1.0.14",
-    "@types/jest": "^26.0.0",
-    "jest": "^26.0.1",
-    "ts-jest": "^26.1.0",
-    "typescript": "^3.9.5"
+    "@google/clasp": "^2.4.1",
+    "@types/google-apps-script": "^1.0.45",
+    "@types/jest": "^27.4.1",
+    "jest": "^27.5.1",
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
   }
 }

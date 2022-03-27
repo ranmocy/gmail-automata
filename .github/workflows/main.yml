@@ -70,12 +70,12 @@ jobs:
       - name: Push script to scripts.google.com
         id: clasp-push
         if: ${{ github.event_name	!= 'schedule'}}
-        run: clasp push -f
+        run: npx clasp push -f
 
       - name: Deploy Script
         id: clasp-deploy
         if: ${{env.DEPLOYMENT_ID && (github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))}}
-        run: clasp deploy -i "$DEPLOYMENT_ID" -d "$GITHUB_REF"
+        run: npx clasp deploy -i "$DEPLOYMENT_ID" -d "$GITHUB_REF"
         env:
           DEPLOYMENT_ID: ${{ secrets.DEPLOYMENT_ID }}
   # dump-context:

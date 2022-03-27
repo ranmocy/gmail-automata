@@ -108,12 +108,15 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 
 ## Dev setup
 
-1. Install NodeJs and NPM.
+1. Install NodeJs and Yarn.
+    ```bash
+    npm install -g yarn
+    ```
 2. Clone source code and install dependencies:
     ```bash
     git clone https://github.com/ranmocy/gmail-automata.git
     cd gmail-automata
-    npm install
+    yarn install
     ```
 
 ## Deploy
@@ -124,10 +127,10 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 3. Update the script id in ".clasp.json" file. To find the script id:
     1. Setup the script following the section [Setup](#Setup) above if you
     haven't do it.
-    2. In the spreadsheet, click menu "Tools" -> "Script Editor".
-    3. In the script editor, click menu "File" > "Project properties" > "Info".
-4. Login CLASP: `npx clasp login` and authorize the app in the browser.
-5. Deploy current version: `npx clasp push`.
+    2. In the spreadsheet, click menu "Extensions" -> "App Script".
+    3. In the script editor, click menu "Project Settings" > "IDs" > "ScriptID".
+4. Login CLASP: `yarn login` and authorize the app in the browser.
+5. Deploy current version: `yarn push`.
 
 ## Changelog
 

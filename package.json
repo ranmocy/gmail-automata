@@ -2,8 +2,12 @@
   "name": "gmail-automata",
   "version": "1.0.0",
   "description": "",
+  "homepage": "https://github.com/ranmocy/gmail-automata#readme",
+  "repository": "github:ranmocy/gmail-automata",
   "main": "index.js",
   "scripts": {
+    "login": "clasp login",
+    "push": "clasp push",
     "test": "jest"
   },
   "author": "Ranmocy",

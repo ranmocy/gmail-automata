@@ -1,5 +1,5 @@
 # https://github.com/ericanastas/deploy-google-app-script-action
-name: Deploy
+name: Test and deploy on main branch
 
 on:
   workflow_dispatch:
@@ -28,6 +28,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
+
+      - name: Test
+        run: yarn test
 
       - name: Write CLASPRC_JSON secret to .clasprc.json file
         id: write-clasprc

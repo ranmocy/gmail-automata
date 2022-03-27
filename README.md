@@ -129,8 +129,8 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
     haven't do it.
     2. In the spreadsheet, click menu "Extensions" -> "App Script".
     3. In the script editor, click menu "Project Settings" > "IDs" > "ScriptID".
-4. Login CLASP: `yarn login` and authorize the app in the browser.
-5. Deploy current version: `yarn push`.
+4. Login CLASP: `yarn claspLogin` and authorize the app in the browser.
+5. Deploy current version: `yarn deploy`.
 
 ## Changelog
 

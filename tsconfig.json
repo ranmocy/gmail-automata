@@ -10,7 +10,7 @@
     ],
     // "noLib": true,
     "isolatedModules": true,
-    "noResolve": true,
+    // "noResolve": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitUseStrict": true,
     "noImplicitReturns": true,

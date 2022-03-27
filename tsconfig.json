@@ -2,9 +2,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "build",
-    "module": "none",
-    "target": "es2019",
+    "module": "None",
+    "target": "ES2019",
     "allowJs": true,
+    "lib": [
+      "esnext"
+    ],
+    // "noLib": true,
+    "isolatedModules": true,
+    "noResolve": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitUseStrict": true,
     "noImplicitReturns": true,

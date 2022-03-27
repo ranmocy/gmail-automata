@@ -1,3 +1,4 @@
+# https://github.com/ericanastas/deploy-google-app-script-action
 name: Deploy
 
 on:
@@ -6,6 +7,8 @@ on:
     branches: [main]
   release:
     types: [published]
+  schedule:
+    - cron: "0 0 * * SUN"
 
 jobs:
   deploy:
@@ -21,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn install
@@ -57,7 +60,7 @@ jobs:
       - name: Set scriptId in .clasp.json file
         id: set-script-id
         if: ${{ github.event_name	!= 'schedule' && env.SCRIPT_ID}}
-        run: jq '.scriptId = "${{env.SCRIPT_ID}}"' .clasp.json.example > .clasp.json
+        run: jq '.scriptId = "${{env.SCRIPT_ID}}"' .clasp.template.json > .clasp.json
         env:
           SCRIPT_ID: ${{secrets.SCRIPT_ID}}
 

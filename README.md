@@ -123,7 +123,7 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 
 1. Setup local development enviroment following the section
 [Dev setup](#dev-setup) above.
-2. Add ".clasp.json" file: `cp .clasp.json.example .clasp.json`.
+2. Add ".clasp.json" file: `cp .clasp.template.json .clasp.json`.
 3. Update the script id in ".clasp.json" file. To find the script id:
     1. Setup the script following the section [Setup](#Setup) above if you
     haven't do it.

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
+export enum BooleanActionType {DEFAULT, ENABLE, DISABLE}
 
-enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
+export enum InboxActionType {DEFAULT, INBOX, ARCHIVE, TRASH}
 
-enum ActionAfterMatchType {DEFAULT, DONE, FINISH_STAGE, NEXT_STAGE}
+export enum ActionAfterMatchType {DEFAULT, DONE, FINISH_STAGE, NEXT_STAGE}
 
-class ThreadAction {
+export default class ThreadAction {
 
     private static ACTION_CONFIG_TYPE_FIELD_NAMES: (keyof Pick<ThreadAction, "important" | "read" | "auto_label">)[] = ["important", "read", "auto_label"];
 
@@ -40,7 +40,12 @@ class ThreadAction {
 
     addLabels(new_label_names: string[]) {
         for (const label of new_label_names) {
-            this.label_names.add(label);
+            let remaining = label;
+            while (remaining) {
+                this.label_names.add(remaining);
+                const index = remaining.lastIndexOf('/');
+                remaining = remaining.substring(0, index);
+            }
         }
     }
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import {assert, withTimer} from './utils';
-import ThreadAction, {BooleanActionType, InboxActionType} from 'ThreadAction';
+import Utils from './utils';
+import ThreadAction, {BooleanActionType, InboxActionType} from './ThreadAction';
+import {SessionData} from './SessionData';
 
 // Represents a message in a thread
 const MAX_BODY_PROCESSING_LENGTH = 65535;
@@ -49,7 +50,7 @@ export class MessageData {
         }
         for (const part of parts) {
             const [type, address] = part.trim().split(/\s+/);
-            assert(typeof address !== 'undefined', `Unexpected mailing list: ${match[1].trim()}`);
+            Utils.assert(typeof address !== 'undefined', `Unexpected mailing list: ${match[1].trim()}`);
             if (type.trim() === 'list') {
                 return address;
             }
@@ -121,19 +122,19 @@ export class ThreadData {
     }
 
     validateActions() {
-        if (!this.thread_action.hasAnyAction()) {
+        if (!this.thread_action.hasAnyAction() && this.thread_action.move_to != InboxActionType.NOTHING) {
             const messages = this.raw.getMessages();
             const last_message = messages[messages.length - 1];
             const from = last_message.getFrom();
             const to = last_message.getTo();
-            throw `Thread "${this.raw.getFirstMessageSubject()}" from ${from} to ${to} has no action, does it match any rule?`;
+            throw `Thread "${this.raw.getFirstMessageSubject()}" from ${from} to ${to} has default action (${this.thread_action}), does it match any rule?`;
         }
     }
 
     static applyAllActions(session_data: SessionData, all_thread_data: ThreadData[]) {
         const label_action_map: { [key: string]: GoogleAppsScript.Gmail.GmailThread[] } = {};
         const moving_action_map = new Map<InboxActionType, GoogleAppsScript.Gmail.GmailThread[]>([
-            [InboxActionType.DEFAULT, []], [InboxActionType.INBOX, []], [InboxActionType.ARCHIVE, []], [InboxActionType.TRASH, []]
+            [InboxActionType.DEFAULT, []], [InboxActionType.INBOX, []], [InboxActionType.ARCHIVE, []], [InboxActionType.TRASH, []], [InboxActionType.NOTHING, []]
         ]);
         const important_action_map = new Map<BooleanActionType, GoogleAppsScript.Gmail.GmailThread[]>([
             [BooleanActionType.DEFAULT, []], [BooleanActionType.ENABLE, []], [BooleanActionType.DISABLE, []]
@@ -160,7 +161,7 @@ export class ThreadData {
             read_action_map.get(action.read)!.push(thread);
         });
 
-        withTimer("BatchApply", () => {
+        Utils.withTimer("BatchApply", () => {
             // batch update labels
             for (const label_name in label_action_map) {
                 const threads = label_action_map[label_name];

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-class Rule {
+import Utils from './utils';
+import Condition from "./Condition";
+import ThreadAction, {ActionAfterMatchType, BooleanActionType, InboxActionType} from './ThreadAction';
+
+export class Rule {
 
     public readonly condition: Condition;
     public readonly thread_action: Readonly<ThreadAction>;
@@ -65,10 +69,10 @@ class Rule {
 
     private static parseInboxActionType(str: string): InboxActionType {
         if (str.length === 0) {
-            return InboxActionType.DEFAULT;
+            return InboxActionType.NOTHING;
         }
         const result = InboxActionType[str.toUpperCase() as keyof typeof InboxActionType];
-        assert(result !== undefined, `Can't parse inbox action value ${str}.`);
+        Utils.assert(result !== undefined, `Can't parse inbox action value ${str}.`);
         return result;
     }
 
@@ -77,12 +81,12 @@ class Rule {
             return ActionAfterMatchType.DEFAULT;
         }
         const result = ActionAfterMatchType[str.toUpperCase() as keyof typeof ActionAfterMatchType];
-        assert(result !== undefined, `Can't parse action_after_match value ${str}.`);
+        Utils.assert(result !== undefined, `Can't parse action_after_match value ${str}.`);
         return result;
     }
 
     public static getRules(): Rule[] {
-        const values: string[][] = withTimer("GetRuleValues", () => {
+        const values: string[][] = Utils.withTimer("GetRuleValues", () => {
             const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
             const column_num = sheet.getLastColumn();
             const row_num = sheet.getLastRow();

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-class SessionData {
+import Utils from './utils';
+import {Config} from './Config'
+import {Rule} from './Rule'
+
+export class SessionData {
 
     private static getLabelMap(): { [key: string]: GoogleAppsScript.Gmail.GmailLabel } {
         let labels: { [key: string]: GoogleAppsScript.Gmail.GmailLabel } = {};
@@ -33,10 +37,10 @@ class SessionData {
     public readonly oldest_to_process: Date;
 
     constructor() {
-        this.user_email = withTimer("getEmail", () => Session.getActiveUser().getEmail());
-        this.config = withTimer("getConfigs", () => Config.getConfig());
-        this.labels = withTimer("getLabels", () => SessionData.getLabelMap());
-        this.rules = withTimer("getRules", () => Rule.getRules());
+        this.user_email = Utils.withTimer("getEmail", () => Session.getActiveUser().getEmail());
+        this.config = Utils.withTimer("getConfigs", () => Config.getConfig());
+        this.labels = Utils.withTimer("getLabels", () => SessionData.getLabelMap());
+        this.rules = Utils.withTimer("getRules", () => Rule.getRules());
 
         this.processing_start_time = new Date();
         // Check back two processing intervals to make sure we checked all messages in the thread
@@ -46,7 +50,7 @@ class SessionData {
 
     getOrCreateLabel(name: string) {
         name = name.trim();
-        assert(name.length > 0, "Can't get empty label!");
+        Utils.assert(name.length > 0, "Can't get empty label!");
 
         if (!(name in this.labels)) {
             // Also create parent labels too if necessary.

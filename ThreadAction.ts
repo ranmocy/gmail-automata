@@ -76,4 +76,72 @@ export default class ThreadAction {
         }
         return result;
     }
+
+    static testThreadActions(it: Function, expect: Function) {
+        it('Adds parent labels', () => {
+            const labels = ['list/abc', 'bot/team1/test', 'bot/team1/alert', 'def'];
+            const action = new ThreadAction();
+            const expected = new Set(['list', 'list/abc', 'bot', 'bot/team1', 'bot/team1/test', 'bot/team1/alert', 'def'])
+          
+            action.addLabels(labels);
+          
+            expect(action.label_names).toEqual(expected);
+        });
+
+        it('Does not add parent labels for empty list', () => {
+            const labels: string[] = [];
+            const action = new ThreadAction();
+            
+            action.addLabels(labels);
+            
+            expect(action.label_names.size).toBe(0);
+        });
+
+        it('Uses Default action for rules', () => {
+            const thread_data_action = new ThreadAction();
+
+            expect(thread_data_action.move_to).toBe(InboxActionType.DEFAULT);
+        });
+
+        it('Default Actions for message', () => {
+            const message_action = new ThreadAction();
+            
+            expect(message_action.move_to).toBe(InboxActionType.DEFAULT);
+            expect(message_action.important).toBe(BooleanActionType.DEFAULT);
+            expect(message_action.read).toBe(BooleanActionType.DEFAULT);
+        });
+
+        it('Merges the final Actions from a single rule', () => {
+            const message_action = new ThreadAction();
+            const rule1_action = new ThreadAction;
+            rule1_action.move_to = InboxActionType.ARCHIVE;
+            rule1_action.important = BooleanActionType.ENABLE;
+            rule1_action.read = BooleanActionType.ENABLE;
+            
+            message_action.mergeFrom(rule1_action);
+            
+            expect(message_action.move_to).toBe(InboxActionType.ARCHIVE);
+            expect(message_action.important).toBe(BooleanActionType.ENABLE);
+            expect(message_action.read).toBe(BooleanActionType.ENABLE);
+        });
+
+        it('Merges the final Actions from multiple rules', () => {
+            const message_action = new ThreadAction();
+            const rule1_action = new ThreadAction;
+            const rule2_action = new ThreadAction;
+            rule1_action.move_to = InboxActionType.ARCHIVE;
+            rule1_action.important = BooleanActionType.ENABLE;
+            rule1_action.read = BooleanActionType.ENABLE;
+            rule2_action.move_to = InboxActionType.TRASH;
+            rule2_action.important = BooleanActionType.DISABLE;
+            rule2_action.read = BooleanActionType.DISABLE;
+
+            message_action.mergeFrom(rule1_action);
+            message_action.mergeFrom(rule2_action);
+
+            expect(message_action.move_to).toBe(InboxActionType.TRASH);
+            expect(message_action.important).toBe(BooleanActionType.DISABLE);
+            expect(message_action.read).toBe(BooleanActionType.DISABLE);
+        });
+    }
 }

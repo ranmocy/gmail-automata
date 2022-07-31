@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-import Condition from './Condition';
+import {Processor} from './Processor';
 
-describe('Condition Regex Parsing and Matching', () => {
-    Condition.testRegex(it, expect);
-})
-
-describe('Condition Building', () => {
-    Condition.testConditionParsing(it, expect);
+describe('Processor Tests', () => {
+    Processor.testProcessing(it, expect);
 })

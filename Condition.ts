@@ -191,51 +191,77 @@ export default class Condition {
         return `(${type_str} ${regexp_str} ${sub_str})`;
     }
 
-    public static testAll() {
-        function t(condition_str: string, target_str: string, is_address: boolean, should_matching: boolean) {
+    public static testRegex(it: Function, expect: Function) {
+
+        function test_regexp(condition_str: string, target_str: string, is_address: boolean) {
             const regexp = Condition.parseRegExp(condition_str, "", is_address);
-            Utils.assert(regexp.test(target_str) === should_matching,
-                `Expect ${condition_str}(${regexp.source}) to match ${target_str}, but failed`);
+            return regexp.test(target_str);
         }
 
-        // matching address ignoring labels
-        t('some-mailing-list@gmail.com', 'some-mailing-list@gmail.com', true, true);
-        t('some-mailing-list@gmail.com', 'prefix-some-mailing-list@gmail.com', true, false);
-        t('some-mailing-list@gmail.com', 'some-mailing-list-suffix@gmail.com', true, false);
-        t('some-mailing-list@gmail.com', 'some-mailing-list+tag1@gmail.com', true, true);
+        // Matching address ignoring labels
+        it('Matches address', () =>
+            expect(test_regexp('some-mailing-list@gmail.com', 'some-mailing-list@gmail.com', true)).toBe(true))
+        it('Does not match address with prefix', () =>
+            expect(test_regexp('some-mailing-list@gmail.com', 'prefix-some-mailing-list@gmail.com', true)).toBe(false))
+        it('Does not match address with suffix', () =>
+            expect(test_regexp('some-mailing-list@gmail.com', 'some-mailing-list-suffix@gmail.com', true)).toBe(false))
+        it('Matches address, ignoring labels', () =>
+            expect(test_regexp('some-mailing-list@gmail.com', 'some-mailing-list+tag1@gmail.com', true)).toBe(true))
 
-        // matching address with name
-        t('abc@gmail.com', '<abc@gmail.com>', true, true);
-        t('abc@gmail.com', '<abc+dd@gmail.com>', true, true);
-        t('abc@gmail.com', 'dd <abc+dd@gmail.com>', true, true);
+        // Matching address with name
+        it('Matches address surrounded by <>', () =>
+            expect(test_regexp('abc@gmail.com', '<abc@gmail.com>', true)).toBe(true))
+        it('Matches address surrounded by <>, ignoring labels', () =>
+            expect(test_regexp('abc@gmail.com', '<abc+dd@gmail.com>', true)).toBe(true))
+        it('Matches address surrounded by <>, ignoring name prefix', () =>
+            expect(test_regexp('abc@gmail.com', 'dd <abc+dd@gmail.com>', true)).toBe(true))
 
-        // if label is specified, then it's required
-        t('some-mailing-list+tag1@gmail.com', 'some-mailing-list@gmail.com', true, false);
-        t('some-mailing-list+tag1@gmail.com', 'some-mailing-list+tag1@gmail.com', true, true);
-        t('some-mailing-list+tag1@gmail.com', 'some-mailing-list+tag2@gmail.com', true, false);
+        // If label is specified, then it's required
+        it('Does not match if missing label', () =>
+            expect(test_regexp('some-mailing-list+tag1@gmail.com', 'some-mailing-list@gmail.com', true)).toBe(false))
+        it('Matches address with label', () =>
+            expect(test_regexp('some-mailing-list+tag1@gmail.com', 'some-mailing-list+tag1@gmail.com', true)).toBe(true))
+        it('Does not match address with incorrect label', () =>
+            expect(test_regexp('some-mailing-list+tag1@gmail.com', 'some-mailing-list+tag2@gmail.com', true)).toBe(false))
 
-        // exact matching
-        t('"some-mailing-list@gmail.com"', 'some-mailing-list@gmail.com', true, true);
-        t('"some-mailing-list@gmail.com"', 'prefix-some-mailing-list@gmail.com', true, false);
-        t('"some-mailing-list@gmail.com"', 'some-mailing-list-suffix@gmail.com', true, false);
-        t('"some-mailing-list@gmail.com"', 'some-mailing-list+tag1@gmail.com', true, false);
+        // Exact matching
+        it('Matches exact address (using quotes)', () =>
+            expect(test_regexp('"some-mailing-list@gmail.com"', 'some-mailing-list@gmail.com', true)).toBe(true))
+        it('Does not match exact address (using quotes) with prefix', () =>
+            expect(test_regexp('"some-mailing-list@gmail.com"', 'prefix-some-mailing-list@gmail.com', true)).toBe(false))
+        it('Does not match exact address (using quotes) with suffix', () =>
+            expect(test_regexp('"some-mailing-list@gmail.com"', 'some-mailing-list-suffix@gmail.com', true)).toBe(false))
+        it('Does not match exact address (using quotes) with label', () =>
+            expect(test_regexp('"some-mailing-list@gmail.com"', 'some-mailing-list+tag1@gmail.com', true)).toBe(false))
 
-        // exact matching with tag
-        t('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list@gmail.com', true, false);
-        t('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list+tag1@gmail.com', true, true);
-        t('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list+tag2@gmail.com', true, false);
+        // Exact matching with tag
+        it('Does not match exact address (using quotes) with label', () =>
+            expect(test_regexp('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list@gmail.com', true)).toBe(false))
+        it('Matches exact address (using quotes) with label', () =>
+            expect(test_regexp('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list+tag1@gmail.com', true)).toBe(true))
+        it('Does not match exact address (using quotes) with incorrect label', () =>
+            expect(test_regexp('"some-mailing-list+tag1@gmail.com"', 'some-mailing-list+tag2@gmail.com', true)).toBe(false))
 
-        // matches are case-insensitive
-        t('abc+Def@gmail.com', 'abc+def@gmail.com', true, true);
-        t('"abc+Def@gmail.com"', 'abc+def@gmail.com', true, true);
+        // Matches are case-insensitive
+        it('Matches address with different case', () =>
+            expect(test_regexp('abc+Def@gmail.com', 'abc+def@gmail.com', true)).toBe(true))
+        it('Matches exact address with different case', () =>
+            expect(test_regexp('"abc+Def@gmail.com"', 'abc+def@gmail.com', true)).toBe(true))
 
-        // regexp matching
-        t('/some-.*@gmail.com/', 'some-mailing-list@gmail.com', true, true);
-        t('/some-.*@gmail.com/', 'some-mailing-list+tag@gmail.com', true, true);
-        t('/some-.*@gmail.com/', 'some2-mailing-list@gmail.com', true, false);
-        t('/feedback access request/i', 'Feedback access request', false, true);
-        t('/abc.def/si', 'Abc\nDef', false, true);
+        // Regexp matching
+        it('Matches address using regexp', () =>
+            expect(test_regexp('/some-.*@gmail.com/', 'some-mailing-list@gmail.com', true)).toBe(true))
+        it('Matches address using regexp with label', () =>
+            expect(test_regexp('/some-.*@gmail.com/', 'some-mailing-list+tag@gmail.com', true)).toBe(true))
+        it('Does not match address using regexp', () =>
+            expect(test_regexp('/some-.*@gmail.com/', 'some2-mailing-list@gmail.com', true)).toBe(false))
+        it('Matches address using regexp and case insensitive', () =>
+            expect(test_regexp('/feedback access request/i', 'Feedback access request', false)).toBe(true))
+        it('Matches content using regexp, case-insensitive and DOTALL', () =>
+            expect(test_regexp('/abc.def/si', 'Abc\nDef', false)).toBe(true))
+    }
 
+    public static testConditionParsing(it: Function, expect: Function) {
         const base_message = {
             getFrom: () => '',
             getTo: () => '',
@@ -247,14 +273,14 @@ export default class Condition {
             getRawContent: () => '',
         } as GoogleAppsScript.Gmail.GmailMessage;
 
-        function c(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>, expected: boolean) {
+        function test_cond(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>): boolean {
             const condition = new Condition(condition_str);
             const message_data = new MessageData(Object.assign({}, base_message, message));
-            Utils.assert(condition.match(message_data) === expected,
-                `Expected ${condition_str} matches email ${message}, but failed`);
+            return condition.match(message_data);
         }
 
-        c(`(and
+        it('Matches nested and/or conditions', () => {
+            expect(test_cond(`(and
              (from abc@gmail.com)
              (or
                (receiver ijl@gmail.com)
@@ -263,35 +289,40 @@ export default class Condition {
                 getFrom: () => 'dd <abc+dd@gmail.com>',
                 getTo: () => 'something+-random@gmail.com',
                 getCc: () => 'xyz+tag@gmail.com',
-            },
-            true);
-        c(`(or
+            })).toBe(true)
+        })
+        it('Matches multiple TO: entries', () => {
+            expect(test_cond(`(or
              (receiver abc@gmail.com)
              (receiver abc@corp.com))`,
             {
                 getFrom: () => 'DDD EEE <def@corp.com>',
                 getTo: () => 'AAA BBB <abc@corp.com>, DDD EEE <def@corp.com>',
-            },
-            true);
-        c(`(not (receiver abc@gmail.com))`,
+            })).toBe(true)
+        })
+        it('Does not match when using negation', () => {
+            expect(test_cond(`(not (receiver abc@gmail.com))`,
             {
                 getTo: () => 'AAA BBB <abc@gmail.com>',
-            },
-            false);
-        c(`(not (receiver abc@gmail.com))`,
+            })).toBe(false)
+        })
+        it('Matches when using negation', () => {
+            expect(test_cond(`(not (receiver abc@gmail.com))`,
             {
                 getTo: () => 'AAA BBB <def@gmail.com>',
-            },
-            true);
-        c(`(receiver abc+Def@bar.com)`,
+            })).toBe(true)
+        })
+        it('Matches receiver to TO: address with label', () => {
+            expect(test_cond(`(receiver abc+Def@bar.com)`,
             {
                 getTo: () => 'abc+Def@bar.com',
-            },
-            true);
-        c(`(receiver "abc+Def@bar.com")`,
+            })).toBe(true)
+        })
+        it('Matches receiver exactly (using quotes) to TO: address with label', () => {
+            expect(test_cond(`(receiver "abc+Def@bar.com")`,
             {
                 getTo: () => 'abc+Def@bar.com',
-            },
-            true);
+            })).toBe(true)
+        })
     }
 }

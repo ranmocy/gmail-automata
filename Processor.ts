@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import {ActionAfterMatchType, InboxActionType} from './ThreadAction';
-import {SessionData} from 'SessionData';
-import {ThreadData} from './ThreadData'
+import {SessionData} from './SessionData';
+import {ThreadData} from './ThreadData';
+import {Stats} from './Stats';
 import Utils from './utils';
 
 export class Processor {

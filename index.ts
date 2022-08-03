@@ -16,8 +16,11 @@
 
 // Polyfills
 
-import Condition from './Condition'
-import {Processor} from './Processor'
+import Condition from './Condition';
+import {Config} from './Config';
+import {Processor} from './Processor';
+import {Stats} from './Stats';
+import Utils from './utils';
 
 // String.startsWith polyfill
 if (!String.prototype.startsWith) {

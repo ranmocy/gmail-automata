@@ -35,6 +35,10 @@ export class Rule {
         return this.condition.toString();
     }
 
+    getConditionHeaders(): string[] {
+        return this.condition.getConditionHeaders();
+    }
+
     private static parseBooleanValue(str: string): boolean {
         if (str.length === 0) {
             return false;
@@ -84,6 +88,15 @@ export class Rule {
         const result = ActionAfterMatchType[str.toUpperCase() as keyof typeof ActionAfterMatchType];
         Utils.assert(result !== undefined, `Can't parse action_after_match value ${str}.`);
         return result;
+    }
+
+    public static getConditionHeaders(rules: Rule[]): string[] {
+        const headers: Set<string> = new Set<string>();
+        rules.forEach((rule) => {
+            const rule_headers = rule.getConditionHeaders();
+            rule_headers.forEach(item => headers.add(item))
+        });
+        return Array.from(headers.values())
     }
 
     public static parseRules(values: string[][]): Rule[] {
@@ -206,10 +219,12 @@ export class Rule {
                 }]);
 
             const rules = Rule.parseRules(sheet);
+            const condition_headers = Rule.getConditionHeaders(rules);
 
             expect(rules.length).toBe(1);
             expect(rules[0].stage).toBe(5);
             expect(rules[0].thread_action.label_names.size).toBe(2);
+            expect(condition_headers).toEqual([]);
         })
 
         it('Loaded Rules are sorted by stage', () => {
@@ -239,5 +254,34 @@ export class Rule {
             expect(rules[2].stage).toBe(15);
         })
 
+        it('Loads rules with Headers', () => {
+            const sheet = Mocks.getMockTestSheet([
+                {
+                    conditions: '(and (or (header Test1 /abc/i)' +
+                                '         (header h2 xyz@gmail.com))' +
+                                '     (and' + 
+                                '         (header X-List abcde)' +
+                                '         (header h3 /abcde/)))',
+                    add_labels: 'def, uvw',
+                    stage: "10",
+                },
+                {
+                    conditions: '(header h5 /asdf/)',
+                    add_labels: 'abc',
+                    stage: "15",
+                }
+            ]);
+
+            const rules = Rule.parseRules(sheet);
+            const condition_headers = Rule.getConditionHeaders(rules);
+
+            expect(rules.length).toBe(2);
+            expect(rules[0].stage).toBe(10);
+            expect(rules[0].thread_action.label_names).toEqual(new Set(['def', 'uvw']));
+            expect(rules[1].stage).toBe(15);
+            expect(rules[1].thread_action.label_names).toEqual(new Set(['abc']));
+            expect(condition_headers).toEqual(
+                ['Test1', 'h2', 'X-List', 'h3', 'h5']);
+        })
     }
 }

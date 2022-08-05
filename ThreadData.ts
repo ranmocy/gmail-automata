@@ -27,35 +27,45 @@ export class MessageData {
         return str.toLowerCase().split(',').map(address => address.trim());
     }
 
-    private static parseListId(raw: string): string {
-        // Parsing would be limited to headers only
-        const raw_header_str = raw.split('\r\n\r\n')[0];
-        // const match = raw_header_str.match(/^\s*list-id:[^<]*<([^>]*)>\s*$/im);
-        // if (match == null || !match[1]) {
-        //     return '';
-        // }
-        // const raw_list_id = match[1];
-        // const raw_list_id_at_index = raw_list_id.lastIndexOf('.', raw_list_id.lastIndexOf('.') - 1);
-        // const listId = raw_list_id.substr(0, raw_list_id_at_index) + '@' + raw_list_id.substr(raw_list_id_at_index + 1, raw_list_id.length);
-        // return listId.toLowerCase().replace(/[^a-z0-9@\.\/+]+/g, '-');
-
-        // E.x. Mailing-list: list xyz@gmail.com; contact xyz-admin@gmail.com
-        const match = raw_header_str.match(/^\s*mailing-list:(.*)$/im);
-        if (match == null || !match[1]) {
-            return '';
-        }
-        const parts = match[1].trim().split(';');
-        if (parts.length === 0) {
-            return '';
-        }
-        for (const part of parts) {
-            const [type, address] = part.trim().split(/\s+/);
-            Utils.assert(typeof address !== 'undefined', `Unexpected mailing list: ${match[1].trim()}`);
-            if (type.trim() === 'list') {
-                return address;
+    private static parseMailingList(message: GoogleAppsScript.Gmail.GmailMessage): string {
+        const mailing_list = message.getHeader('Mailing-list').trim();
+        if (!!mailing_list) {
+            // E.x. "list xyz@gmail.com; contact xyz-admin@gmail.com"
+            const parts = mailing_list.split(';');
+            for (const part of parts) {
+                const [type, address] = part.trim().split(/\s+/);
+                Utils.assert(typeof address !== 'undefined', `Unexpected mailing list: ${mailing_list}`);
+                if (type.trim() === 'list') {
+                    return address;
+                }
             }
         }
+        const list_id = message.getHeader('List-ID').trim();
+        if (!!list_id) {
+            // E.x. "<mygroup.gmail.com>"
+            let address = list_id;
+            if (address.length > 0 && address.charAt(0) == '<') {
+                address = address.substring(1);
+            }
+            if (address.length > 0 && address.charAt(-1)) {
+                address = address.slice(0, -1);
+            }
+            return address;
+        }
         return '';
+    }
+
+    private static parseSenders(message: GoogleAppsScript.Gmail.GmailMessage): string[] {
+        const original_sender = message.getHeader('X-Original-Sender').trim();
+        const sender = message.getHeader('Sender').trim();
+        const senders: string[] = [];
+        if (!!original_sender) {
+            senders.push(original_sender);
+        }
+        if (!!sender) {
+            senders.push(sender);
+        }
+        return senders;
     }
 
     public readonly from: string;
@@ -74,9 +84,10 @@ export class MessageData {
         this.to = MessageData.parseAddresses(message.getTo());
         this.cc = MessageData.parseAddresses(message.getCc());
         this.bcc = MessageData.parseAddresses(message.getBcc());
-        this.list = MessageData.parseListId(message.getRawContent());
+        this.list = MessageData.parseMailingList(message);
         this.reply_to = MessageData.parseAddresses(message.getReplyTo());
-        this.sender = ([] as string[]).concat(this.from, this.reply_to);
+        this.sender = ([] as string[]).concat(
+            this.from, this.reply_to, ...MessageData.parseSenders(message));
         this.receivers = ([] as string[]).concat(this.to, this.cc, this.bcc, this.list);
         this.subject = message.getSubject();
         // Potentially could be HTML, Plain, or RAW. But doesn't seem very useful other than Plain.
@@ -84,7 +95,7 @@ export class MessageData {
         // Truncate and log long messages.
         if (body.length > MAX_BODY_PROCESSING_LENGTH) {
             Logger.log(`Ignoring the end of long message with subject "${this.subject}"`);
-            body = body.substr(0, MAX_BODY_PROCESSING_LENGTH);
+            body = body.substring(0, MAX_BODY_PROCESSING_LENGTH);
         }
         this.body = body;
     }

@@ -69,6 +69,15 @@ export class MessageData {
     public readonly subject: string;
     public readonly body: string;
     public readonly headers: Map<string, string>;
+    public readonly thread_labels: string[];
+    public readonly thread_is_important: boolean;
+    public readonly thread_is_in_inbox: boolean;
+    public readonly thread_is_in_priority_inbox: boolean;
+    public readonly thread_is_in_spam: boolean;
+    public readonly thread_is_in_trash: boolean;
+    public readonly thread_is_starred: boolean;
+    public readonly thread_is_unread: boolean;
+    public readonly thread_first_message_subject: string;
 
     constructor(session_data: SessionData, message: GoogleAppsScript.Gmail.GmailMessage) {
         this.from = message.getFrom();
@@ -84,6 +93,19 @@ export class MessageData {
         session_data.requested_headers.forEach(header => {
             this.headers.set(header, message.getHeader(header));
         });
+        this.thread_labels = [];
+        const thread = message.getThread();
+        thread.getLabels().forEach(label => {
+            this.thread_labels.push(label.getName());
+        });
+        this.thread_is_important = thread.isImportant();
+        this.thread_is_in_inbox = thread.isInInbox();
+        this.thread_is_in_priority_inbox = thread.isInPriorityInbox();
+        this.thread_is_in_spam = thread.isInSpam();
+        this.thread_is_in_trash = thread.isInTrash();
+        this.thread_is_starred = thread.hasStarredMessages();
+        this.thread_is_unread = thread.isUnread();
+        this.thread_first_message_subject = thread.getFirstMessageSubject();
         // Potentially could be HTML, Plain, or RAW. But doesn't seem very useful other than Plain.
         let body = message.getPlainBody();
         // Truncate and log long messages.

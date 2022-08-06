@@ -71,6 +71,12 @@ if (typeof Object.assign !== 'function') {
 
 // Top level functions
 
+function ensurePermissionsEstablished() {
+    // Some Gmail configurations do not initiate asking for Gmail
+    // permissions when Gmail APIs are used behind withTimer(). See Issue#63.
+    Session.getActiveUser();
+}
+
 // Triggered when Spreadsheet is opened
 // noinspection JSUnusedGlobalSymbols
 function onOpen(e: { authMode: GoogleAppsScript.Script.AuthMode }) {
@@ -94,6 +100,7 @@ function onOpen(e: { authMode: GoogleAppsScript.Script.AuthMode }) {
 
 // Triggered when time-driven trigger or click via Spreadsheet menu
 function processEmails() {
+    ensurePermissionsEstablished();
     Utils.withFailureEmailed("processEmails", () => Processor.processAllUnprocessedThreads());
 }
 
@@ -104,6 +111,7 @@ function sanityChecking() {
 }
 
 function setupTriggers() {
+    ensurePermissionsEstablished();
     cancelTriggers();
 
     Utils.withFailureEmailed("setupTriggers", () => {

@@ -24,6 +24,7 @@ import {Rule} from './Rule';
 export class Processor {
 
     private static processThread(session_data: SessionData, thread_data: ThreadData) {
+        let thread_matched_a_rule = false;
         for (const message_data of thread_data.message_data_list) {
             // Apply each rule until matching a rule with a DONE action or matching a rule with
             // FINISH_STAGE and then exhausting all other rules in that stage.
@@ -37,6 +38,7 @@ export class Processor {
                     break;
                 }
                 if (rule.condition.match(message_data)) {
+                    thread_matched_a_rule = true;
                     console.log(`rule ${rule} matches message ${message_data}, apply action ${rule.thread_action}`);
                     thread_data.thread_action.mergeFrom(rule.thread_action);
                     let endThread = false;
@@ -69,7 +71,13 @@ export class Processor {
             // }
 
         }
-        thread_data.validateActions();
+        if (!thread_matched_a_rule) {
+            const last_message = thread_data.getLatestMessage();
+            const from = last_message.getFrom();
+            const to = last_message.getTo();
+            const first_message_subject = thread_data.getFirstMessageSubject();
+            throw `Thread "${first_message_subject}" from ${from} to ${to} has no action, does it match any rule?`;
+        }
     }
 
     public static processAllUnprocessedThreads() {
@@ -171,19 +179,23 @@ export class Processor {
             expect(thread_data.thread_action.move_to).toBe(InboxActionType.DEFAULT);
             expect(thread_data.thread_action.read).toBe(BooleanActionType.DEFAULT);
         })
-        it('Throws error when message matches action but has no actions', () => {
-            expect(() => {
-                test_proc([
-                    {
-                        conditions: '(sender xyz@gmail.com)',
-                        stage: '5',
-                    },
-                ], [
-                    {
-                        getFrom: () => 'xyz@gmail.com',
-                        }
-                ])
-            }).toThrow();
+        it('Does nothing to message that matches rule with no actions', () => {
+            const thread_data = test_proc([
+                {
+                    conditions: '(sender xyz@gmail.com)',
+                    stage: '5',
+                },
+            ], [
+                {
+                    getFrom: () => 'xyz@gmail.com',
+                }
+            ]);
+
+            expect(thread_data.thread_action.action_after_match).toBe(ActionAfterMatchType.DEFAULT);
+            expect(thread_data.thread_action.important).toBe(BooleanActionType.DEFAULT);
+            expect(thread_data.thread_action.label_names).toEqual(new Set());
+            expect(thread_data.thread_action.move_to).toBe(InboxActionType.DEFAULT);
+            expect(thread_data.thread_action.read).toBe(BooleanActionType.DEFAULT);
         })
     }
 }

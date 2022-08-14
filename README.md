@@ -127,7 +127,7 @@ Click menu "Gmail Automata" -> "Stop auto processing" to remove auto triggering.
 3. Update the script id in ".clasp.json" file. To find the script id:
     1. Setup the script following the section [Setup](#Setup) above if you
     haven't do it.
-    2. In the spreadsheet, click menu "Extensions" -> "App Script".
+    2. In the spreadsheet, click menu "Extensions" -> "Apps Script".
     3. In the script editor, click menu "Project Settings" > "IDs" > "ScriptID".
 4. Login CLASP: `yarn claspLogin` and authorize the app in the browser.
 5. Deploy current version: `yarn deploy`.

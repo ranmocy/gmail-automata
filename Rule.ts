@@ -88,6 +88,9 @@ export class Rule {
     public static getRules(): Rule[] {
         const values: string[][] = Utils.withTimer("GetRuleValues", () => {
             const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
+            if (sheet === null) {
+                throw "Active sheet 'rules' not found";
+            }
             const column_num = sheet.getLastColumn();
             const row_num = sheet.getLastRow();
             return sheet.getRange(1, 1, row_num, column_num)

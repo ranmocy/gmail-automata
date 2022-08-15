@@ -16,6 +16,9 @@
 
 // Polyfills
 
+import Condition from './Condition'
+import {Processor} from './Processor'
+
 // String.startsWith polyfill
 if (!String.prototype.startsWith) {
     Object.defineProperty(String.prototype, 'startsWith', {
@@ -91,11 +94,11 @@ function onOpen(e: { authMode: GoogleAppsScript.Script.AuthMode }) {
 
 // Triggered when time-driven trigger or click via Spreadsheet menu
 function processEmails() {
-    withFailureEmailed("processEmails", () => Processor.processAllUnprocessedThreads());
+    Utils.withFailureEmailed("processEmails", () => Processor.processAllUnprocessedThreads());
 }
 
 function sanityChecking() {
-    withFailureEmailed("sanityChecking", () => {
+    Utils.withFailureEmailed("sanityChecking", () => {
         Stats.collapseStatRecords();
     });
 }
@@ -103,9 +106,9 @@ function sanityChecking() {
 function setupTriggers() {
     cancelTriggers();
 
-    withFailureEmailed("setupTriggers", () => {
-        const config = withTimer("getConfigs", () => Config.getConfig());
-        withTimer("addingTriggers", () => {
+    Utils.withFailureEmailed("setupTriggers", () => {
+        const config = Utils.withTimer("getConfigs", () => Config.getConfig());
+        Utils.withTimer("addingTriggers", () => {
             let trigger = ScriptApp.newTrigger('processEmails')
                 .timeBased()
                 .everyMinutes(config.processing_frequency_in_minutes)
@@ -118,7 +121,7 @@ function setupTriggers() {
                 .create();
             Logger.log(`Created trigger ${trigger.getHandlerFunction()}: ${trigger.getUniqueId()}`);
 
-            assert(ScriptApp.getProjectTriggers().length === 2,
+            Utils.assert(ScriptApp.getProjectTriggers().length === 2,
                 `Unexpected trigger lists: ${ScriptApp.getProjectTriggers()
                     .map(trigger => trigger.getHandlerFunction())}`);
         });
@@ -126,7 +129,7 @@ function setupTriggers() {
 }
 
 function cancelTriggers() {
-    withFailureEmailed("cancelTriggers", () => {
+    Utils.withFailureEmailed("cancelTriggers", () => {
         ScriptApp.getProjectTriggers().forEach(trigger => {
             Logger.log(`Deleting trigger ${trigger.getHandlerFunction()}...`);
             ScriptApp.deleteTrigger(trigger);

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-interface MutableConfig {
+import Utils from './utils';
+
+export interface MutableConfig {
     unprocessed_label: string;
     processed_label: string;
     processing_failed_label: string;
@@ -25,7 +27,7 @@ interface MutableConfig {
     auto_labeling_parent_label: string;
 }
 
-class Config implements Readonly<MutableConfig> {
+export class Config implements Readonly<MutableConfig> {
     public readonly unprocessed_label: string;
     public readonly processed_label: string;
     public readonly processing_failed_label: string;
@@ -36,9 +38,9 @@ class Config implements Readonly<MutableConfig> {
     public readonly auto_labeling_parent_label: string;
 
     private static validate(config: Config) {
-        assert(config.unprocessed_label.length > 0, "unprocessed_label can't be empty");
-        assert(config.processing_frequency_in_minutes >= 5, "processing_frequency_in_minutes can't be smaller than 5");
-        assert(config.max_threads <= 100, "max_threads can't be greater than 100");
+        Utils.assert(config.unprocessed_label.length > 0, "unprocessed_label can't be empty");
+        Utils.assert(config.processing_frequency_in_minutes >= 5, "processing_frequency_in_minutes can't be smaller than 5");
+        Utils.assert(config.max_threads <= 100, "max_threads can't be greater than 100");
     }
 
     public static getConfig(): Config {
@@ -53,7 +55,7 @@ class Config implements Readonly<MutableConfig> {
             auto_labeling_parent_label: "",
         };
 
-        const values = withTimer("GetConfigValues", () => {
+        const values = Utils.withTimer("GetConfigValues", () => {
             const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('configs');
             const num_rows = sheet.getLastRow();
             return sheet.getRange(1, 1, num_rows, 2).getDisplayValues().map(row => row.map(cell => cell.trim()));

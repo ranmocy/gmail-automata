@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-class Stats {
+export class Stats {
 
     private static RECORD_SHEET_NAME = 'statistics';
     private static SUMMARY_SHEET_NAME = 'daily_stats';

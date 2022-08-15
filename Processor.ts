@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {ActionAfterMatchType, InboxActionType} from './ThreadAction';
+import {SessionData} from 'SessionData';
+import {ThreadData} from './ThreadData'
+import Utils from './utils';
 
-class Processor {
+export class Processor {
 
     private static processThread(session_data: SessionData, thread_data: ThreadData) {
         for (const message_data of thread_data.message_data_list) {
@@ -73,7 +77,7 @@ class Processor {
             return;
         }
 
-        const unprocessed_threads = withTimer("fetchUnprocessedThreads",
+        const unprocessed_threads = Utils.withTimer("fetchUnprocessedThreads",
             () => GmailApp.search('label:' + session_data.config.unprocessed_label, 0,
                 session_data.config.max_threads));
         Logger.log(`Found ${unprocessed_threads.length} unprocessed threads.`);
@@ -82,12 +86,12 @@ class Processor {
             return;
         }
 
-        const all_thread_data = withTimer("transformIntoThreadData",
+        const all_thread_data = Utils.withTimer("transformIntoThreadData",
             () => unprocessed_threads.map(thread => new ThreadData(session_data, thread)));
 
         let processed_thread_count = 0, processed_message_count = 0;
         let all_pass = true;
-        withTimer("collectActions", () => {
+        Utils.withTimer("collectActions", () => {
             for (const thread_data of all_thread_data) {
                 try {
                     Processor.processThread(session_data, thread_data);
@@ -106,11 +110,11 @@ class Processor {
         });
         Logger.log(`Processed ${processed_thread_count} out of ${unprocessed_threads.length}.`);
 
-        withTimer("applyAllActions", () => ThreadData.applyAllActions(session_data, all_thread_data));
+        Utils.withTimer("applyAllActions", () => ThreadData.applyAllActions(session_data, all_thread_data));
 
-        withTimer('addStatRecord',
+        Utils.withTimer('addStatRecord',
             () => Stats.addStatRecord(start_time, processed_thread_count, processed_message_count));
 
-        assert(all_pass, `Some processing fails, check emails`);
+        Utils.assert(all_pass, `Some processing fails, check emails`);
     }
 }

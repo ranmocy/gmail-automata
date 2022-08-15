@@ -15,7 +15,7 @@
  */
 
 import {MessageData} from './ThreadData';
-import {assert} from './utils';
+import Utils from './utils';
 
 const RE_FLAG_PATTERN = /^\/(.*)\/([gimuys]*)$/;
 
@@ -44,7 +44,7 @@ export default class Condition {
                     break;
                 case ')':
                     level--;
-                    assert(level >= 0, `Condition ${condition_str} has non-balanced parentheses`);
+                    Utils.assert(level >= 0, `Condition ${condition_str} has non-balanced parentheses`);
                     if (level === 0) {
                         if (start < end) {
                             const sub_str = rest_str.substring(start, end + 1).trim();
@@ -57,7 +57,7 @@ export default class Condition {
                     break;
             }
         }
-        assert(level === 0, `Condition ${condition_str} has non-balanced parentheses overall.`);
+        Utils.assert(level === 0, `Condition ${condition_str} has non-balanced parentheses overall.`);
         return result;
     }
 
@@ -66,7 +66,7 @@ export default class Condition {
     }
 
     private static parseRegExp(pattern: string, condition_str: string, matching_address: boolean): RegExp {
-        assert(pattern.length > 0, `Condition ${condition_str} should have value but not found`);
+        Utils.assert(pattern.length > 0, `Condition ${condition_str} should have value but not found`);
         const match = pattern.match(RE_FLAG_PATTERN);
         if (match !== null) {
             // normal regexp
@@ -90,7 +90,7 @@ export default class Condition {
 
     constructor(condition_str: string) {
         condition_str = condition_str.trim();
-        assert(condition_str.startsWith('(') && condition_str.endsWith(')'),
+        Utils.assert(condition_str.startsWith('(') && condition_str.endsWith(')'),
             `Condition ${condition_str} should be surrounded by ().`);
         const first_space = condition_str.indexOf(" ");
         const type_str = condition_str.substring(1, first_space).trim().toUpperCase();
@@ -194,7 +194,7 @@ export default class Condition {
     public static testAll() {
         function t(condition_str: string, target_str: string, is_address: boolean, should_matching: boolean) {
             const regexp = Condition.parseRegExp(condition_str, "", is_address);
-            assert(regexp.test(target_str) === should_matching,
+            Utils.assert(regexp.test(target_str) === should_matching,
                 `Expect ${condition_str}(${regexp.source}) to match ${target_str}, but failed`);
         }
 
@@ -250,7 +250,7 @@ export default class Condition {
         function c(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>, expected: boolean) {
             const condition = new Condition(condition_str);
             const message_data = new MessageData(Object.assign({}, base_message, message));
-            assert(condition.match(message_data) === expected,
+            Utils.assert(condition.match(message_data) === expected,
                 `Expected ${condition_str} matches email ${message}, but failed`);
         }
 

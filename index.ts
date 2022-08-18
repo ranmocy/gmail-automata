@@ -16,8 +16,14 @@
 
 // Polyfills
 
-import Condition from './Condition'
-import {Processor} from './Processor'
+import Condition from './Condition';
+import {Config} from './Config';
+import {JestExpect, JestIt} from './JestSheets';
+import {Processor} from './Processor';
+import {Rule} from './Rule';
+import {Stats} from './Stats';
+import ThreadAction from './ThreadAction';
+import Utils from './utils';
 
 // String.startsWith polyfill
 if (!String.prototype.startsWith) {
@@ -138,5 +144,12 @@ function cancelTriggers() {
 }
 
 function testAll() {
-    Condition.testAll();
+    const jestExpect = new JestExpect();
+    const jestIt = new JestIt();
+
+    Condition.testRegex(jestIt.it, jestExpect.expect);
+    Condition.testConditionParsing(jestIt.it, jestExpect.expect);
+    Rule.testRules(jestIt.it, jestExpect.expect);
+    ThreadAction.testThreadActions(jestIt.it, jestExpect.expect);
+    Processor.testProcessing(jestIt.it, jestExpect.expect);
 }

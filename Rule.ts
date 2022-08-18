@@ -16,6 +16,7 @@
 
 import Utils from './utils';
 import Condition from "./Condition";
+import Mocks from "./Mocks";
 import ThreadAction, {ActionAfterMatchType, BooleanActionType, InboxActionType} from './ThreadAction';
 
 export class Rule {
@@ -85,15 +86,7 @@ export class Rule {
         return result;
     }
 
-    public static getRules(): Rule[] {
-        const values: string[][] = Utils.withTimer("GetRuleValues", () => {
-            const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
-            const column_num = sheet.getLastColumn();
-            const row_num = sheet.getLastRow();
-            return sheet.getRange(1, 1, row_num, column_num)
-                .getDisplayValues()
-                .map(row => row.map(cell => cell.trim()));
-        });
+    public static parseRules(values: string[][]): Rule[] {
         const row_num = values.length;
         const column_num = values[0].length;
 
@@ -115,6 +108,13 @@ export class Rule {
                 throw `Invalid rule header:"${name}"`;
             }
             header_map[name] = column;
+        }
+
+        // Ensure all expected headers exist
+        for (const header_name in header_map) {
+            if (header_map[header_name] < 0) {
+                throw `Missing rule header: ${header_name}`;
+            }
         }
 
         // get rest rows
@@ -145,8 +145,99 @@ export class Rule {
         // sort by stage
         rules.sort((a: Rule, b: Rule) => a.stage - b.stage);
 
-        console.log(`Parsed rules:\n${rules.map(rule => rule.toString()).join("\n---\n")}`);
-
         return rules;
+    }
+
+    public static getRules(): Rule[] {
+        const values: string[][] = Utils.withTimer("GetRuleValues", () => {
+            const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
+            if (sheet === null) {
+                throw "Active sheet 'rules' not found";
+            }
+            const column_num = sheet.getLastColumn();
+            const row_num = sheet.getLastRow();
+            return sheet.getRange(1, 1, row_num, column_num)
+                .getDisplayValues()
+                .map(row => row.map(cell => cell.trim()));
+        });
+        const rules = Rule.parseRules(values);
+        console.log(`Parsed rules:\n${rules.map(rule => rule.toString()).join("\n---\n")}`);
+        return rules;
+    }
+
+    public static testRules(it: Function, expect: Function) {
+        if (typeof SpreadsheetApp !== 'undefined') {
+            // This can only be tested in the Sheet
+
+            it('Reads in default rules from Sheet', () => {
+                const rules = Rule.getRules();
+                expect(rules.length).toBeGreaterThan(0);
+            });
+        }
+
+        it('Reads in Header', () => {
+            const sheet = Mocks.getMockTestSheet([]);
+            const rules = Rule.parseRules(sheet);
+
+            expect(rules.length).toBe(0);
+        })
+
+        it('Fails with header missing item', () => {
+            const sheet = Mocks.getMockTestSheet([]);
+            sheet[0] = sheet[0].slice(0, -2);
+
+            expect(() => {Rule.parseRules(sheet)}).toThrow();
+        })
+
+        it('Loads Empty Rules', () => {
+            const sheet = Mocks.getMockTestSheet([{}, {}]);
+
+            const rules = Rule.parseRules(sheet);
+
+            expect(rules.length).toBe(0);
+        })
+
+        it('Loads Simple Rule', () => {
+            const sheet = Mocks.getMockTestSheet([
+                {
+                    conditions: '(body /to: me/i)',
+                    add_labels: 'abc, xyz',
+                    stage: "5",
+                }]);
+
+            const rules = Rule.parseRules(sheet);
+
+            expect(rules.length).toBe(1);
+            expect(rules[0].stage).toBe(5);
+            expect(rules[0].thread_action.label_names.size).toBe(2);
+        })
+
+        it('Loaded Rules are sorted by stage', () => {
+            const sheet = Mocks.getMockTestSheet([
+                {
+                    conditions: '(body /to: me/i)',
+                    add_labels: 'abc, xyz',
+                    stage: "5",
+                },
+                {
+                    conditions: '(body /to: me/i)',
+                    add_labels: 'abc, xyz',
+                    stage: "15",
+                },
+                {
+                    conditions: '(body /to: me/i)',
+                    add_labels: 'abc, xyz',
+                    stage: "1",
+                }
+            ]);
+
+            const rules = Rule.parseRules(sheet);
+
+            expect(rules.length).toBe(3);
+            expect(rules[0].stage).toBe(1);
+            expect(rules[1].stage).toBe(5);
+            expect(rules[2].stage).toBe(15);
+        })
+
     }
 }

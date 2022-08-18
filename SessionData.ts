@@ -30,7 +30,7 @@ export class SessionData {
 
     public readonly user_email: string;
     public readonly config: Config;
-    private readonly labels: { [key: string]: GoogleAppsScript.Gmail.GmailLabel };
+    public readonly labels: { [key: string]: GoogleAppsScript.Gmail.GmailLabel };
     public readonly rules: Rule[];
 
     public readonly processing_start_time: Date;

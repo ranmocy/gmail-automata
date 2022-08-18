@@ -57,6 +57,9 @@ export class Config implements Readonly<MutableConfig> {
 
         const values = Utils.withTimer("GetConfigValues", () => {
             const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('configs');
+            if (sheet === null) {
+                throw "Active sheet 'configs' not found";
+            }
             const num_rows = sheet.getLastRow();
             return sheet.getRange(1, 1, num_rows, 2).getDisplayValues().map(row => row.map(cell => cell.trim()));
         });

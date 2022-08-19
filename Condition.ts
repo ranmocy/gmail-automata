@@ -166,7 +166,7 @@ export default class Condition {
                 return this.matchAddress(message_data.list);
             }
             case ConditionType.SENDER: {
-                return this.matchAddress(message_data.from);
+                return this.matchAddress(...message_data.sender);
             }
             case ConditionType.RECEIVER: {
                 return this.matchAddress(...message_data.receivers);
@@ -270,7 +270,7 @@ export default class Condition {
             getReplyTo: () => '',
             getSubject: () => '',
             getPlainBody: () => '',
-            getRawContent: () => '',
+            getHeader: (_name: string) => '',
         } as GoogleAppsScript.Gmail.GmailMessage;
 
         function test_cond(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>): boolean {

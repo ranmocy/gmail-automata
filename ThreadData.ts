@@ -68,8 +68,9 @@ export class MessageData {
     public readonly receivers: string[];
     public readonly subject: string;
     public readonly body: string;
+    public readonly headers: Map<string, string>;
 
-    constructor(message: GoogleAppsScript.Gmail.GmailMessage) {
+    constructor(session_data: SessionData, message: GoogleAppsScript.Gmail.GmailMessage) {
         this.from = message.getFrom();
         this.to = MessageData.parseAddresses(message.getTo());
         this.cc = MessageData.parseAddresses(message.getCc());
@@ -79,6 +80,10 @@ export class MessageData {
         this.sender = ([] as string[]).concat(this.from, this.reply_to);
         this.receivers = ([] as string[]).concat(this.to, this.cc, this.bcc, this.list);
         this.subject = message.getSubject();
+        this.headers = new Map<string, string>();
+        session_data.requested_headers.forEach(header => {
+            this.headers.set(header, message.getHeader(header));
+        });
         // Potentially could be HTML, Plain, or RAW. But doesn't seem very useful other than Plain.
         let body = message.getPlainBody();
         // Truncate and log long messages.
@@ -111,7 +116,7 @@ export class ThreadData {
         if (newMessages.length === 0) {
             newMessages = [messages[messages.length - 1]];
         }
-        this.message_data_list = newMessages.map(message => new MessageData(message));
+        this.message_data_list = newMessages.map(message => new MessageData(session_data, message));
 
         // Log if any dropped.
         const numDropped = messages.length - newMessages.length;

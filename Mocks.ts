@@ -13,6 +13,7 @@ export default class Mocks {
         processing_failed_label: "zFailed",
         processing_frequency_in_minutes: 5,
         unprocessed_label: "myUnprocessed",
+        parent_labeling: true,
     };
 
     public static getMockConfig = (overrides: Partial<Config> = {}) => (

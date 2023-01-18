@@ -16,6 +16,7 @@
 
 import Utils from './utils';
 import Condition from "./Condition";
+import {Config} from './Config'
 import Mocks from "./Mocks";
 import ThreadAction, {ActionAfterMatchType, BooleanActionType, InboxActionType} from './ThreadAction';
 
@@ -86,7 +87,7 @@ export class Rule {
         return result;
     }
 
-    public static parseRules(values: string[][]): Rule[] {
+    public static parseRules(values: string[][], config: Config): Rule[] {
         const row_num = values.length;
         const column_num = values[0].length;
 
@@ -130,7 +131,9 @@ export class Rule {
             }
 
             const thread_action = new ThreadAction();
-            thread_action.addLabels(Rule.parseStringList(values[row][header_map["add_labels"]], ","));
+            thread_action.addLabels(
+                Rule.parseStringList(values[row][header_map["add_labels"]], ","),
+                config.parent_labeling);
             thread_action.move_to = Rule.parseInboxActionType(values[row][header_map["move_to"]]);
             thread_action.important = Rule.parseBooleanActionType(values[row][header_map["mark_important"]]);
             thread_action.read = Rule.parseBooleanActionType(values[row][header_map["mark_read"]]);
@@ -148,7 +151,7 @@ export class Rule {
         return rules;
     }
 
-    public static getRules(): Rule[] {
+    public static getRules(config: Config): Rule[] {
         const values: string[][] = Utils.withTimer("GetRuleValues", () => {
             const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('rules');
             if (sheet === null) {
@@ -160,7 +163,7 @@ export class Rule {
                 .getDisplayValues()
                 .map(row => row.map(cell => cell.trim()));
         });
-        const rules = Rule.parseRules(values);
+        const rules = Rule.parseRules(values, config);
         console.log(`Parsed rules:\n${rules.map(rule => rule.toString()).join("\n---\n")}`);
         return rules;
     }
@@ -170,34 +173,39 @@ export class Rule {
             // This can only be tested in the Sheet
 
             it('Reads in default rules from Sheet', () => {
-                const rules = Rule.getRules();
+                const config = Config.getConfig();
+                const rules = Rule.getRules(config);
                 expect(rules.length).toBeGreaterThan(0);
             });
         }
 
         it('Reads in Header', () => {
             const sheet = Mocks.getMockTestSheet([]);
-            const rules = Rule.parseRules(sheet);
+            const config = Mocks.getMockConfig();
+            const rules = Rule.parseRules(sheet, config);
 
             expect(rules.length).toBe(0);
         })
 
         it('Fails with header missing item', () => {
+            const config = Mocks.getMockConfig();
             const sheet = Mocks.getMockTestSheet([]);
             sheet[0] = sheet[0].slice(0, -2);
 
-            expect(() => {Rule.parseRules(sheet)}).toThrow();
+            expect(() => {Rule.parseRules(sheet, config)}).toThrow();
         })
 
         it('Loads Empty Rules', () => {
+            const config = Mocks.getMockConfig();
             const sheet = Mocks.getMockTestSheet([{}, {}]);
 
-            const rules = Rule.parseRules(sheet);
+            const rules = Rule.parseRules(sheet, config);
 
             expect(rules.length).toBe(0);
         })
 
         it('Loads Simple Rule', () => {
+            const config = Mocks.getMockConfig();
             const sheet = Mocks.getMockTestSheet([
                 {
                     conditions: '(body /to: me/i)',
@@ -205,14 +213,50 @@ export class Rule {
                     stage: "5",
                 }]);
 
-            const rules = Rule.parseRules(sheet);
+            const rules = Rule.parseRules(sheet, config);
 
             expect(rules.length).toBe(1);
             expect(rules[0].stage).toBe(5);
             expect(rules[0].thread_action.label_names.size).toBe(2);
         })
 
+        it('Parent Labels Created', () => {
+            const config = Mocks.getMockConfig({parent_labeling: true});
+            const sheet = Mocks.getMockTestSheet([
+                {
+                    conditions: '(body /to: me/i)',
+                    add_labels: 'abc/def, xyz/123',
+                    stage: "5",
+                }]);
+
+            const rules = Rule.parseRules(sheet, config);
+     
+            const expected_labels = new Set(['abc', 'abc/def', 'xyz', 'xyz/123'])
+            expect(rules.length).toBe(1);
+            expect(rules[0].stage).toBe(5);
+            expect(rules[0].thread_action.label_names).toEqual(expected_labels);
+        })
+
+        it('Parent Labels Not Created when configuration disabled', () => {
+            const config = Mocks.getMockConfig({parent_labeling: false});
+            const sheet = Mocks.getMockTestSheet([
+                {
+                    conditions: '(body /to: me/i)',
+                    add_labels: 'abc/def, xyz/123',
+                    stage: "5",
+                }]);
+
+            const rules = Rule.parseRules(sheet, config);
+     
+            const expected_labels = new Set(['abc/def', 'xyz/123'])
+          
+            expect(rules.length).toBe(1);
+            expect(rules[0].stage).toBe(5);
+            expect(rules[0].thread_action.label_names).toEqual(expected_labels);
+        })
+
         it('Loaded Rules are sorted by stage', () => {
+            const config = Mocks.getMockConfig();
             const sheet = Mocks.getMockTestSheet([
                 {
                     conditions: '(body /to: me/i)',
@@ -231,7 +275,7 @@ export class Rule {
                 }
             ]);
 
-            const rules = Rule.parseRules(sheet);
+            const rules = Rule.parseRules(sheet, config);
 
             expect(rules.length).toBe(3);
             expect(rules[0].stage).toBe(1);

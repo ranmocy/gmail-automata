@@ -25,6 +25,7 @@ export interface MutableConfig {
     go_link: string;
     max_threads: number;
     auto_labeling_parent_label: string;
+    parent_labeling: boolean;
 }
 
 export class Config implements Readonly<MutableConfig> {
@@ -36,6 +37,7 @@ export class Config implements Readonly<MutableConfig> {
     public readonly go_link: string;
     public readonly max_threads: number;
     public readonly auto_labeling_parent_label: string;
+    public readonly parent_labeling: boolean;
 
     private static validate(config: Config) {
         Utils.assert(config.unprocessed_label.length > 0, "unprocessed_label can't be empty");
@@ -53,6 +55,7 @@ export class Config implements Readonly<MutableConfig> {
             go_link: "",
             max_threads: 50,
             auto_labeling_parent_label: "",
+            parent_labeling: true,
         };
 
         const values = Utils.withTimer("GetConfigValues", () => {
@@ -72,6 +75,7 @@ export class Config implements Readonly<MutableConfig> {
             }
 
             switch (name) {
+                // Integer Config Values
                 case "processing_frequency_in_minutes":
                 case "hour_of_day_to_run_sanity_checking":
                 case "max_threads": {
@@ -82,6 +86,7 @@ export class Config implements Readonly<MutableConfig> {
                     config[name] = result;
                     break;
                 }
+                // String Config Values
                 case "unprocessed_label":
                 case "processed_label":
                 case "processing_failed_label":
@@ -90,8 +95,13 @@ export class Config implements Readonly<MutableConfig> {
                     config[name] = value;
                     break;
                 }
+                // Boolean Config Values
+                case "parent_labeling": {
+                    config[name] = value.toLowerCase() === 'true';
+                    break;
+                }
                 default: {
-                    console.error(`Invalid config: ${name}`);
+                    throw `Invalid config: "${name}" == "${value}"`;
                 }
             }
         }

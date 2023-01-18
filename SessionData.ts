@@ -40,7 +40,7 @@ export class SessionData {
         this.user_email = Utils.withTimer("getEmail", () => Session.getActiveUser().getEmail());
         this.config = Utils.withTimer("getConfigs", () => Config.getConfig());
         this.labels = Utils.withTimer("getLabels", () => SessionData.getLabelMap());
-        this.rules = Utils.withTimer("getRules", () => Rule.getRules());
+        this.rules = Utils.withTimer("getRules", () => Rule.getRules(this.config));
 
         this.processing_start_time = new Date();
         // Check back two processing intervals to make sure we checked all messages in the thread

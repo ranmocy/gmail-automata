@@ -121,14 +121,13 @@ export class ThreadData {
         }
     }
 
-    validateActions() {
-        if (!this.thread_action.hasAnyAction()) {
-            const messages = this.raw.getMessages();
-            const last_message = messages[messages.length - 1];
-            const from = last_message.getFrom();
-            const to = last_message.getTo();
-            throw `Thread "${this.raw.getFirstMessageSubject()}" from ${from} to ${to} has no action, does it match any rule?`;
-        }
+    getLatestMessage(): GoogleAppsScript.Gmail.GmailMessage {
+        const messages = this.raw.getMessages();
+        return messages[messages.length -1];
+    }
+
+    getFirstMessageSubject(): string {
+        return this.raw.getFirstMessageSubject();
     }
 
     static applyAllActions(session_data: SessionData, all_thread_data: ThreadData[]) {

@@ -38,7 +38,7 @@ export class Processor {
                 }
                 if (rule.condition.match(message_data)) {
                     console.log(`rule ${rule} matches message ${message_data}, apply action ${rule.thread_action}`);
-                    thread_data.thread_action.mergeFrom(rule.thread_action);
+                    thread_data.thread_action.mergeFrom(rule.thread_action, session_data.config.parent_labeling);
                     let endThread = false;
                     switch (rule.thread_action.action_after_match) {
                         case ActionAfterMatchType.DONE:
@@ -129,7 +129,8 @@ export class Processor {
             ): ThreadData {
 
             const sheet = Mocks.getMockTestSheet(sheet_rows);
-            const rules = Rule.parseRules(sheet);
+            const config = Mocks.getMockConfig();
+            const rules = Rule.parseRules(sheet, config);
             const session_data = Mocks.getMockSessionData({rules: rules});
             const mock_gmail_thread = Mocks.getMockThreadOfMessages(thread_messages, thread);
             const thread_data = new ThreadData(session_data, mock_gmail_thread);

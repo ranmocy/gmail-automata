@@ -38,19 +38,23 @@ export default class ThreadAction {
             || this.read != BooleanActionType.DEFAULT;
     }
 
-    addLabels(new_label_names: string[]) {
+    addLabels(new_label_names: string[], add_parent_labels: boolean) {
         for (const label of new_label_names) {
-            let remaining = label;
-            while (remaining) {
-                this.label_names.add(remaining);
-                const index = remaining.lastIndexOf('/');
-                remaining = remaining.substring(0, index);
+            if (add_parent_labels) {
+                let remaining = label;
+                while (remaining) {
+                    this.label_names.add(remaining);
+                    const index = remaining.lastIndexOf('/');
+                    remaining = remaining.substring(0, index);
+                }
+            } else {
+                this.label_names.add(label);
             }
         }
     }
 
-    mergeFrom(other: Readonly<ThreadAction>): this {
-        this.addLabels(Array.from(other.label_names.values()));
+    mergeFrom(other: Readonly<ThreadAction>, add_parent_labels: boolean): this {
+        this.addLabels(Array.from(other.label_names.values()), add_parent_labels);
         if (other.move_to != InboxActionType.DEFAULT) {
             this.move_to = other.move_to;
         }
@@ -81,9 +85,19 @@ export default class ThreadAction {
         it('Adds parent labels', () => {
             const labels = ['list/abc', 'bot/team1/test', 'bot/team1/alert', 'def'];
             const action = new ThreadAction();
-            const expected = new Set(['list', 'list/abc', 'bot', 'bot/team1', 'bot/team1/test', 'bot/team1/alert', 'def'])
+            const expected = new Set(['list', 'list/abc', 'bot', 'bot/team1', 'bot/team1/test', 'bot/team1/alert', 'def']);
           
-            action.addLabels(labels);
+            action.addLabels(labels, true);
+          
+            expect(action.label_names).toEqual(expected);
+        });
+
+        it('Does not add parent labels if disabled', () => {
+            const labels = ['list/abc', 'bot/team1/test', 'bot/team1/alert', 'def'];
+            const action = new ThreadAction();
+            const expected = new Set(['list/abc', 'bot/team1/test', 'bot/team1/alert', 'def']);
+          
+            action.addLabels(labels, false);
           
             expect(action.label_names).toEqual(expected);
         });
@@ -92,7 +106,7 @@ export default class ThreadAction {
             const labels: string[] = [];
             const action = new ThreadAction();
             
-            action.addLabels(labels);
+            action.addLabels(labels, true);
             
             expect(action.label_names.size).toBe(0);
         });
@@ -118,7 +132,7 @@ export default class ThreadAction {
             rule1_action.important = BooleanActionType.ENABLE;
             rule1_action.read = BooleanActionType.ENABLE;
             
-            message_action.mergeFrom(rule1_action);
+            message_action.mergeFrom(rule1_action, true);
             
             expect(message_action.move_to).toBe(InboxActionType.ARCHIVE);
             expect(message_action.important).toBe(BooleanActionType.ENABLE);
@@ -136,8 +150,8 @@ export default class ThreadAction {
             rule2_action.important = BooleanActionType.DISABLE;
             rule2_action.read = BooleanActionType.DISABLE;
 
-            message_action.mergeFrom(rule1_action);
-            message_action.mergeFrom(rule2_action);
+            message_action.mergeFrom(rule1_action, true);
+            message_action.mergeFrom(rule2_action, true);
 
             expect(message_action.move_to).toBe(InboxActionType.TRASH);
             expect(message_action.important).toBe(BooleanActionType.DISABLE);

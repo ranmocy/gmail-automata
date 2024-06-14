@@ -15,21 +15,33 @@
  */
 
 import {MessageData} from './ThreadData';
+import {SessionData} from './SessionData';
+import Mocks from './Mocks';
 import Utils from './utils';
 
 const RE_FLAG_PATTERN = /^\/(.*)\/([gimuys]*)$/;
 
 enum ConditionType {
-    AND, OR, NOT, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY,
+    AND, OR, NOT, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY, HEADER, THREAD
+}
+
+enum ThreadSubType {
+    FIRST_MESSAGE_SUBJECT, LABEL, IS_STARRED, IS_IMPORTANT, IS_IN_INBOX, IS_IN_PRIORITY_INBOX,
+    IS_IN_SPAM, IS_IN_TRASH, IS_UNREAD
 }
 
 /**
  * S expression represents condition in rule.
  *
  * Syntax:
- * CONDITION_EXP := (OPERATOR CONDITION_LIST) | (MATCHER STRING)
+ * CONDITION_EXP := (OPERATOR CONDITION_LIST) | (MATCHER STRING) |
+ *                  (MATCHER_SUBTYPE SUBTYPE_STRING STRING) | (MATCHER_SUBTYPE SUBTYPE_BOOL)
  * OPERATOR := and | or | not
- * MATCHER := subject | from | to | cc | bcc | list | sender | receiver | content
+ * MATCHER := subject | from | to | cc | bcc | list | sender | receiver | body
+ * MATCHER_SUBTYPE := header | thread
+ * SUBTYPE_STRING := first_message_subject | label | STRING
+ * SUBTYPE_BOOL := is_starred | is_important | is_in_inbox | is_in_priority_inbox |
+ *                 is_in_spam | is_in_trash | is_unread
  * CONDITION_LIST := CONDITION_EXP | CONDITION_EXP CONDITION_LIST
  */
 export default class Condition {
@@ -65,7 +77,7 @@ export default class Condition {
         return pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     }
 
-    private static parseRegExp(pattern: string, condition_str: string, matching_address: boolean): RegExp {
+    public static parseRegExp(pattern: string, condition_str: string, matching_address: boolean): RegExp {
         Utils.assert(pattern.length > 0, `Condition ${condition_str} should have value but not found`);
         const match = pattern.match(RE_FLAG_PATTERN);
         if (match !== null) {
@@ -85,6 +97,8 @@ export default class Condition {
     }
 
     private readonly type: ConditionType;
+    private readonly header: string;
+    private readonly threadSubtype: ThreadSubType;
     private readonly regexp: RegExp;
     private readonly sub_conditions: Condition[];
 
@@ -94,7 +108,7 @@ export default class Condition {
             `Condition ${condition_str} should be surrounded by ().`);
         const first_space = condition_str.indexOf(" ");
         const type_str = condition_str.substring(1, first_space).trim().toUpperCase();
-        const rest_str = condition_str.substring(first_space + 1, condition_str.length - 1).trim();
+        let rest_str = condition_str.substring(first_space + 1, condition_str.length - 1).trim();
         this.type = ConditionType[type_str as keyof typeof ConditionType];
         switch (this.type) {
             case ConditionType.AND:
@@ -117,6 +131,29 @@ export default class Condition {
             case ConditionType.SENDER:
             case ConditionType.RECEIVER: {
                 this.regexp = Condition.parseRegExp(rest_str, condition_str, true);
+                break;
+            }
+            case ConditionType.HEADER:
+            case ConditionType.THREAD: {
+                const subtype_first_space = rest_str.indexOf(" ");
+                const subtype = subtype_first_space > 0
+                              ? rest_str.substring(0, subtype_first_space).trim()
+                              : rest_str;
+                let matching_address = true;
+                if (this.type === ConditionType.HEADER) {
+                    this.header = subtype;
+                }
+                if (this.type === ConditionType.THREAD) {
+                    this.threadSubtype = ThreadSubType[subtype.toUpperCase() as keyof typeof ThreadSubType];
+                    if (this.threadSubtype === ThreadSubType.FIRST_MESSAGE_SUBJECT) {
+                        matching_address = false;
+                    }
+                    if (this.threadSubtype === undefined) {
+                        throw `Invalid 'thread' subtype: "${condition_str}"`;
+                    }
+                }
+                rest_str = rest_str.substring(subtype_first_space + 1, rest_str.length).trim();
+                this.regexp = Condition.parseRegExp(rest_str, condition_str, matching_address);
                 break;
             }
             case ConditionType.SUBJECT:
@@ -177,6 +214,44 @@ export default class Condition {
             case ConditionType.BODY: {
                 return this.regexp.test(message_data.body);
             }
+            case ConditionType.HEADER: {
+                const headerData = message_data.headers.get(this.header);
+                if (headerData !== undefined) {
+                    return this.regexp.test(headerData);
+                }
+                return false;
+            }
+            case ConditionType.THREAD: {
+                switch (this.threadSubtype) {
+                    case ThreadSubType.IS_IMPORTANT: {
+                        return message_data.thread_is_important;
+                    }
+                    case ThreadSubType.IS_IN_INBOX: {
+                        return message_data.thread_is_in_inbox;
+                    }
+                    case ThreadSubType.IS_IN_PRIORITY_INBOX: {
+                        return message_data.thread_is_in_priority_inbox;
+                    }
+                    case ThreadSubType.IS_IN_SPAM: {
+                        return message_data.thread_is_in_spam;
+                    }
+                    case ThreadSubType.IS_IN_TRASH: {
+                        return message_data.thread_is_in_trash;
+                    }
+                    case ThreadSubType.IS_STARRED: {
+                        return message_data.thread_is_starred;
+                    }
+                    case ThreadSubType.IS_UNREAD: {
+                        return message_data.thread_is_unread;
+                    }
+                    case ThreadSubType.FIRST_MESSAGE_SUBJECT:  {
+                        return this.regexp.test(message_data.thread_first_message_subject);
+                    }
+                    case ThreadSubType.LABEL: {
+                        return this.matchAddress(...message_data.thread_labels);
+                    }
+                }
+            }
         }
     }
 
@@ -189,6 +264,17 @@ export default class Condition {
         const regexp_str = this.regexp ? this.regexp.source : "";
         const sub_str = this.sub_conditions ? "\n" + this.sub_conditions.map(c => c.toString()).join("\n") : "";
         return `(${type_str} ${regexp_str} ${sub_str})`;
+    }
+
+    getConditionHeaders(): string[] {
+        const headers = [];
+        if (this.type === ConditionType.HEADER) {
+            headers.push(this.header);
+        }
+        this.sub_conditions?.forEach((sub_condition) => {
+            headers.push(...sub_condition.getConditionHeaders());
+        });
+        return headers;
     }
 
     public static testRegex(it: Function, expect: Function) {
@@ -262,20 +348,19 @@ export default class Condition {
     }
 
     public static testConditionParsing(it: Function, expect: Function) {
-        const base_message = {
-            getFrom: () => '',
-            getTo: () => '',
-            getCc: () => '',
-            getBcc: () => '',
-            getReplyTo: () => '',
-            getSubject: () => '',
-            getPlainBody: () => '',
-            getRawContent: () => '',
-        } as GoogleAppsScript.Gmail.GmailMessage;
 
-        function test_cond(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>): boolean {
+        function test_cond(
+            condition_str: string,
+            message: Partial<GoogleAppsScript.Gmail.GmailMessage>,
+            thread: Partial<GoogleAppsScript.Gmail.GmailThread> = {},
+            session_data: Partial<SessionData> = {},
+            thread_labels: string[] = []): boolean {
             const condition = new Condition(condition_str);
-            const message_data = new MessageData(Object.assign({}, base_message, message));
+            const mock_message = Mocks.getMockMessage(message, thread, thread_labels);
+            const mock_session_data = Mocks.getMockSessionData(session_data);
+            const message_data = new MessageData(
+                mock_session_data,
+                mock_message);
             return condition.match(message_data);
         }
 
@@ -323,6 +408,211 @@ export default class Condition {
             {
                 getTo: () => 'abc+Def@bar.com',
             })).toBe(true)
+        })
+        it('Matches body using case-sensitivity', () => {
+            expect(test_cond(`(body with aSdF)`,
+            {
+                getPlainBody: () => 'Text with aSdF in it',
+            })).toBe(true)
+        })
+        it('Does not match body using case-sensitivity', () => {
+            expect(test_cond(`(body asdf)`,
+            {
+                getPlainBody: () => 'Text with aSdF in it',
+            })).toBe(false)
+        })
+
+        function test_cond_labels(
+            condition_str: string,
+            thread_labels: string[]): boolean {
+            return test_cond(condition_str, {}, {}, {}, thread_labels);
+        }
+
+        it('Matches email that is in label, case-insensitive', () => {
+            expect(test_cond_labels(`(thread label xyz)`,
+            ['ABC', 'XYZ', 'ABC/XYZ'])).toBe(true)
+        })
+        it('Does not match email that is in label with partial name', () => {
+            expect(test_cond_labels(`(thread label XY)`,
+            ['ABC', 'XYZ', 'ABC/XYZ'])).toBe(false)
+        })
+        it('Does not match email that is in label without full name', () => {
+            expect(test_cond_labels(`(thread label XYZ)`,
+            ['ABC/XYZ'])).toBe(false)
+        })
+        it('Matches email that is in label with full name', () => {
+            expect(test_cond_labels(`(thread label ABC/XYZ)`,
+            ['ABC/XYZ'])).toBe(true)
+        })
+
+        function test_cond_thread(
+            condition_str: string,
+            thread: Partial<GoogleAppsScript.Gmail.GmailThread>): boolean {
+            return test_cond(condition_str, {}, thread);
+        }
+
+        it('Throws exception if thread subtype is invalid', () => {
+            expect(() => {test_cond_thread(`(thread is_made_up)`, {})}).toThrow()
+        })
+        it('Matches thread is_important if is', () => {
+            expect(test_cond_thread(`(thread is_important)`,
+            {
+                isImportant: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_important if it is not', () => {
+            expect(test_cond_thread(`(thread is_important)`,
+            {
+                isImportant: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread is_in_inbox if is', () => {
+            expect(test_cond_thread(`(thread is_in_inbox)`,
+            {
+                isInInbox: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_in_inbox if it is not', () => {
+            expect(test_cond_thread(`(thread is_in_inbox)`,
+            {
+                isInInbox: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread is_in_priority_inbox if is', () => {
+            expect(test_cond_thread(`(thread is_in_priority_inbox)`,
+            {
+                isInPriorityInbox: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_in_priority_inbox if it is not', () => {
+            expect(test_cond_thread(`(thread is_in_priority_inbox)`,
+            {
+                isInPriorityInbox: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread is_in_spam if is', () => {
+            expect(test_cond_thread(`(thread is_in_spam)`,
+            {
+                isInSpam: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_in_spam if it is not', () => {
+            expect(test_cond_thread(`(thread is_in_spam)`,
+            {
+                isInSpam: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread is_in_trash if it is', () => {
+            expect(test_cond_thread(`(thread is_in_trash)`,
+            {
+                isInTrash: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_in_trash if it is not', () => {
+            expect(test_cond_thread(`(thread is_in_trash)`,
+            {
+                isInTrash: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread is_starred if it is', () => {
+            expect(test_cond_thread(`(thread is_starred)`,
+            {
+                hasStarredMessages: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_starred if it is not', () => {
+            expect(test_cond_thread(`(thread is_starred)`,
+            {
+                hasStarredMessages: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread is_unread if it is', () => {
+            expect(test_cond_thread(`(thread is_unread)`,
+            {
+                isUnread: () => true,
+            })).toBe(true)
+        })
+        it('Does not match thread is_unread if it is not', () => {
+            expect(test_cond_thread(`(thread is_unread)`,
+            {
+                isUnread: () => false,
+            })).toBe(false)
+        })
+        it('Matches thread first_message_subject with case-sensitivity', () => {
+            expect(test_cond_thread(`(thread first_message_subject this is IN subject)`,
+            {
+                getFirstMessageSubject: () => 'subject this is IN subjects',
+            })).toBe(true)
+        })
+        it('Does not match thread first_message_subject with case-sensitivity', () => {
+            expect(test_cond_thread(`(thread first_message_subject this is IN subject)`,
+            {
+                getFirstMessageSubject: () => 'subject this is in subjects',
+            })).toBe(false)
+        })
+        it('Matches thread first_message_subject with regex', () => {
+            expect(test_cond_thread(`(thread first_message_subject /teST Regex/i)`,
+            {
+                getFirstMessageSubject: () => 'RE: test regex subjectline',
+            })).toBe(true)
+        })
+
+        function test_cond_headers(
+            condition_str: string,
+            message: Partial<GoogleAppsScript.Gmail.GmailMessage>,
+            session_data: Partial<SessionData>): boolean {
+            return test_cond(condition_str, message, {}, session_data);
+        }
+
+        it('Matches custom header with value', () => {
+            expect(test_cond_headers(`(header Sender abc@def.com)`,
+            {
+                getHeader: (name: string) => {
+                    if (name === 'Sender') {
+                        return 'abc@def.com';
+                    }
+                    return '';
+                },
+            },
+            {
+                requested_headers: ['Sender', 'List-Post'],
+            })).toBe(true)
+        })
+        it('Matches nested custom header with value', () => {
+            expect(test_cond_headers(`(and
+                (from abc@gmail.com)
+                (and
+                  (header X-List mylist.gmail.com)
+                  (header Precedence /list/i)))`,
+            {
+                getFrom: () => 'DDD EEE <abc@gmail.com>',
+                getHeader: (name: string) => {
+                    if (name === 'X-List') {
+                        return 'mylist.gmail.com';
+                    }
+                    if (name === 'Precedence') {
+                        return 'bills list';
+                    }
+                    return '';
+                },
+            },
+            {
+                requested_headers: ['X-List', 'Precedence'],
+            })).toBe(true)
+        })
+        it('Does not match custom header with incorrect data', () => {
+            expect(test_cond_headers(`(header MyHeader abc)`,
+            {
+                getHeader: (name: string) => {
+                    if (name === 'MyHeader') {
+                        return 'xyz';
+                    }
+                    return '';
+                },
+            },
+            {
+                requested_headers: ['MyHeader'],
+            })).toBe(false)
         })
     }
 }

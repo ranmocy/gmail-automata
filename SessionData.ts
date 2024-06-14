@@ -32,6 +32,7 @@ export class SessionData {
     public readonly config: Config;
     public readonly labels: { [key: string]: GoogleAppsScript.Gmail.GmailLabel };
     public readonly rules: Rule[];
+    public readonly requested_headers: string[];
 
     public readonly processing_start_time: Date;
     public readonly oldest_to_process: Date;
@@ -41,6 +42,7 @@ export class SessionData {
         this.config = Utils.withTimer("getConfigs", () => Config.getConfig());
         this.labels = Utils.withTimer("getLabels", () => SessionData.getLabelMap());
         this.rules = Utils.withTimer("getRules", () => Rule.getRules());
+        this.requested_headers = Utils.withTimer("getHeaders", () => Rule.getConditionHeaders(this.rules));
 
         this.processing_start_time = new Date();
         // Check back two processing intervals to make sure we checked all messages in the thread
@@ -48,7 +50,7 @@ export class SessionData {
             this.processing_start_time.getTime() - 2 * this.config.processing_frequency_in_minutes * 60 * 1000);
     }
 
-    getOrCreateLabel(name: string) {
+    getOrCreateLabel(name: string): GoogleAppsScript.Gmail.GmailLabel {
         name = name.trim();
         Utils.assert(name.length > 0, "Can't get empty label!");
 

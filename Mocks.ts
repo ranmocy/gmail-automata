@@ -24,6 +24,7 @@ export default class Mocks {
         config: Mocks.getMockConfig(),
         labels: {},
         rules: [],
+        requested_headers: [],
         processing_start_time: new Date(12345),
         oldest_to_process: new Date(23456),
         getOrCreateLabel: () => ({} as GoogleAppsScript.Gmail.GmailLabel),

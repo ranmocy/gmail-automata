@@ -15,12 +15,14 @@
  */
 
 import {MessageData} from './ThreadData';
+import {SessionData} from './SessionData';
+import Mocks from './Mocks';
 import Utils from './utils';
 
 const RE_FLAG_PATTERN = /^\/(.*)\/([gimuys]*)$/;
 
 enum ConditionType {
-    AND, OR, NOT, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY,
+    AND, OR, NOT, SUBJECT, FROM, TO, CC, BCC, LIST, SENDER, RECEIVER, BODY, HEADER,
 }
 
 /**
@@ -65,7 +67,7 @@ export default class Condition {
         return pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     }
 
-    private static parseRegExp(pattern: string, condition_str: string, matching_address: boolean): RegExp {
+    public static parseRegExp(pattern: string, condition_str: string, matching_address: boolean): RegExp {
         Utils.assert(pattern.length > 0, `Condition ${condition_str} should have value but not found`);
         const match = pattern.match(RE_FLAG_PATTERN);
         if (match !== null) {
@@ -85,6 +87,7 @@ export default class Condition {
     }
 
     private readonly type: ConditionType;
+    private readonly subtype: string;
     private readonly regexp: RegExp;
     private readonly sub_conditions: Condition[];
 
@@ -94,8 +97,9 @@ export default class Condition {
             `Condition ${condition_str} should be surrounded by ().`);
         const first_space = condition_str.indexOf(" ");
         const type_str = condition_str.substring(1, first_space).trim().toUpperCase();
-        const rest_str = condition_str.substring(first_space + 1, condition_str.length - 1).trim();
+        let rest_str = condition_str.substring(first_space + 1, condition_str.length - 1).trim();
         this.type = ConditionType[type_str as keyof typeof ConditionType];
+        this.subtype = "";
         switch (this.type) {
             case ConditionType.AND:
             case ConditionType.OR: {
@@ -117,6 +121,13 @@ export default class Condition {
             case ConditionType.SENDER:
             case ConditionType.RECEIVER: {
                 this.regexp = Condition.parseRegExp(rest_str, condition_str, true);
+                break;
+            }
+            case ConditionType.HEADER: {
+                const subtype_first_space = rest_str.indexOf(" ");
+                this.subtype = rest_str.substring(0, subtype_first_space).trim();
+                rest_str = rest_str.substring(subtype_first_space + 1, rest_str.length - 1).trim();
+                this.regexp = Condition.parseRegExp(rest_str, condition_str, false);
                 break;
             }
             case ConditionType.SUBJECT:
@@ -177,6 +188,13 @@ export default class Condition {
             case ConditionType.BODY: {
                 return this.regexp.test(message_data.body);
             }
+            case ConditionType.HEADER: {
+                const headerData = message_data.headers.get(this.subtype);
+                if (headerData !== undefined) {
+                    return this.regexp.test(headerData);
+                }
+                return false;
+            }
         }
     }
 
@@ -189,6 +207,17 @@ export default class Condition {
         const regexp_str = this.regexp ? this.regexp.source : "";
         const sub_str = this.sub_conditions ? "\n" + this.sub_conditions.map(c => c.toString()).join("\n") : "";
         return `(${type_str} ${regexp_str} ${sub_str})`;
+    }
+
+    getConditionHeaders(): string[] {
+        const headers = [];
+        if (this.type === ConditionType.HEADER) {
+            headers.push(this.subtype);
+        }
+        this.sub_conditions?.forEach((sub_condition) => {
+            headers.push(...sub_condition.getConditionHeaders());
+        });
+        return headers;
     }
 
     public static testRegex(it: Function, expect: Function) {
@@ -271,11 +300,18 @@ export default class Condition {
             getSubject: () => '',
             getPlainBody: () => '',
             getRawContent: () => '',
+            getHeader: (_name: string) => '',
         } as GoogleAppsScript.Gmail.GmailMessage;
 
-        function test_cond(condition_str: string, message: Partial<GoogleAppsScript.Gmail.GmailMessage>): boolean {
+        function test_cond(
+            condition_str: string,
+            message: Partial<GoogleAppsScript.Gmail.GmailMessage>,
+            session_data: Partial<SessionData> = {}): boolean {
             const condition = new Condition(condition_str);
-            const message_data = new MessageData(Object.assign({}, base_message, message));
+            const mock_session_data = Mocks.getMockSessionData(session_data);
+            const message_data = new MessageData(
+                mock_session_data,
+                Object.assign({}, base_message, message));
             return condition.match(message_data);
         }
 
@@ -323,6 +359,57 @@ export default class Condition {
             {
                 getTo: () => 'abc+Def@bar.com',
             })).toBe(true)
+        })
+
+        it('Matches custom header with value', () => {
+            expect(test_cond(`(header Sender abc@def.com)`,
+            {
+                getHeader: (name: string) => {
+                    if (name === 'Sender') {
+                        return 'abc@def.com';
+                    }
+                    return '';
+                },
+            },
+            {
+                requested_headers: ['Sender', 'List-Post'],
+            })).toBe(true)
+        })
+        it('Matches nested custom header with value', () => {
+            expect(test_cond(`(and
+                (from abc@gmail.com)
+                (and
+                  (header X-List mylist.gmail.com)
+                  (header Precedence /list/i)))`,
+            {
+                getFrom: () => 'DDD EEE <abc@gmail.com>',
+                getHeader: (name: string) => {
+                    if (name === 'X-List') {
+                        return 'mylist.gmail.com';
+                    }
+                    if (name === 'Precedence') {
+                        return 'bills list';
+                    }
+                    return '';
+                },
+            },
+            {
+                requested_headers: ['X-List', 'Precedence'],
+            })).toBe(true)
+        })
+        it('Does not match custom header with incorrect data', () => {
+            expect(test_cond(`(header MyHeader abc)`,
+            {
+                getHeader: (name: string) => {
+                    if (name === 'MyHeader') {
+                        return 'xyz';
+                    }
+                    return '';
+                },
+            },
+            {
+                requested_headers: ['MyHeader'],
+            })).toBe(false)
         })
     }
 }
